@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acordes al teclado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#181512; --panel:#221D19; --panel-alto:#2C2621;
+  --nogal:#6B4A2F; --nogal-claro:#8A6440;
+  --crema:#EDE7DA; --izq:#E8823A; --der:#4FB8A8;
+  --texto:#CFC6B6; --tenue:#8A8073; --linea:#3A322B;
+  --blanca:36px; --negra:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--fondo);color:var(--texto);
+  font-family:'IBM Plex Mono',ui-monospace,monospace;padding:24px 18px 44px}
+.marco{max-width:1080px;margin:0 auto}
+
+.cabecera{border-left:3px solid var(--nogal-claro);padding-left:14px;margin-bottom:24px}
+h1{font-family:'Barlow Condensed',system-ui,sans-serif;font-size:30px;font-weight:600;color:var(--crema)}
+.cabecera p{font-size:12.5px;color:var(--tenue);margin-top:5px;line-height:1.6;max-width:70ch}
+
+.grupo{margin-bottom:14px}
+.etiqueta{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tenue);margin-bottom:7px}
+.fila{display:flex;flex-wrap:wrap;gap:5px}
+.op{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--panel);
+  color:var(--tenue);border:1px solid var(--linea);border-radius:3px;
+  padding:8px 12px;cursor:pointer;transition:background .14s,color .14s,border-color .14s}
+.op:hover{background:var(--panel-alto);color:var(--texto)}
+.op[aria-pressed="true"]{background:var(--nogal);color:var(--crema);border-color:var(--nogal-claro)}
+.op:focus-visible{outline:2px solid var(--der);outline-offset:2px}
+.op.alterada{color:#6F6659}
+.op.alterada[aria-pressed="true"]{color:var(--crema)}
+.op.especie{font-family:'Barlow Condensed',sans-serif;font-size:15px;padding:8px 16px}
+
+.panel{background:var(--panel);border:1px solid var(--linea);border-top:3px solid var(--nogal);
+  border-radius:4px;padding:20px 18px 18px;margin-top:20px}
+.titulo-acorde{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.titulo-acorde strong{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:600;color:var(--crema)}
+.titulo-acorde em{font-style:normal;font-size:12.5px;color:var(--tenue)}
+
+.tonos{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 4px}
+.tono{border:1px solid var(--linea);border-radius:3px;padding:5px 9px;min-width:52px;text-align:center}
+.tono b{display:block;font-size:14px;font-weight:500;color:var(--crema)}
+.tono span{display:block;font-size:10px;color:var(--tenue);margin-top:2px}
+.tono.h-I{border-color:var(--izq)}
+.tono.h-D{border-color:var(--der)}
+
+.aviso{font-size:12px;line-height:1.65;color:var(--tenue);margin:12px 0 16px;max-width:70ch;
+  border-left:2px solid var(--nogal);padding-left:11px}
+
+.caja{overflow-x:auto;padding-bottom:8px}
+.teclado{position:relative;height:172px;margin:0 auto}
+.tecla{position:absolute;top:0;transition:transform .07s ease-out,filter .07s ease-out}
+.blanca{height:100%;width:var(--blanca);
+  background:linear-gradient(180deg,#F5F0E5 0%,var(--crema) 72%,#D6CFC0 100%);
+  border:1px solid #9A9184;border-top:none;border-radius:0 0 4px 4px}
+.negra{height:63%;width:var(--negra);z-index:2;
+  background:linear-gradient(180deg,#3A342E 0%,#141110 78%);
+  border:1px solid #000;border-top:none;border-radius:0 0 3px 3px}
+.tecla.activa{transform:translateY(3px);filter:brightness(1.1)}
+.marca{position:absolute;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
+.blanca .marca{bottom:11px}
+.negra .marca{bottom:7px}
+.punto{width:19px;height:19px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:500;color:#100D0B}
+.punto.solo{font-size:9.5px;letter-spacing:-.03em}
+.punto.m-I{background:var(--izq)}
+.punto.m-D{background:var(--der)}
+.blanca .nombre{font-size:9px;color:#5C554A;letter-spacing:.02em}
+.do{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+  font-size:8px;color:#A79E90;pointer-events:none}
+
+.controles{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+.btn{font-family:'Barlow Condensed',sans-serif;font-size:15px;background:var(--panel-alto);
+  color:var(--crema);border:1px solid var(--linea);border-radius:3px;padding:9px 16px;
+  cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--nogal);border-color:var(--nogal-claro)}
+.btn:focus-visible{outline:2px solid var(--der);outline-offset:2px}
+.btn.principal{background:var(--nogal);border-color:var(--nogal-claro)}
+.btn.izq{border-color:var(--izq);color:var(--izq)}
+.btn.izq:hover{background:var(--izq);color:#100D0B}
+.btn.der{border-color:var(--der);color:var(--der)}
+.btn.der:hover{background:var(--der);color:#100D0B}
+.sep{width:1px;height:26px;background:var(--linea);margin:0 3px}
+
+.pie{display:flex;gap:18px;flex-wrap:wrap;margin-top:15px;padding-top:13px;
+  border-top:1px solid var(--linea);font-size:11.5px;color:var(--tenue)}
+.pie i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.pie i.m-I{background:var(--izq)}
+.pie i.m-D{background:var(--der)}
+.modos{display:flex;gap:5px;margin-bottom:20px}
+.modo{font-family:'Barlow Condensed',sans-serif;font-size:16px;letter-spacing:.02em;
+  background:none;color:var(--tenue);border:none;border-bottom:2px solid transparent;
+  padding:7px 3px;margin-right:16px;cursor:pointer}
+.modo[aria-selected="true"]{color:var(--crema);border-bottom-color:var(--nogal-claro)}
+.modo:focus-visible{outline:2px solid var(--der);outline-offset:2px}
+.archivo{display:inline-flex;align-items:center;gap:9px;cursor:pointer}
+.archivo input{position:absolute;width:1px;height:1px;opacity:0}
+#rep-info b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:17px;color:var(--crema)}
+#rep-info span{display:block;font-size:11.5px;color:var(--tenue);margin-top:3px}
+#rep-info{margin-bottom:16px;min-height:42px}
+.reglas{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:14px;font-size:12px;color:var(--tenue)}
+.reglas label{display:flex;align-items:center;gap:7px}
+.reglas input[type=number]{width:56px;background:var(--panel-alto);color:var(--crema);
+  border:1px solid var(--linea);border-radius:3px;padding:5px 7px;font-family:inherit;font-size:12px}
+.reglas input[type=range]{width:150px;accent-color:var(--nogal-claro)}
+.btn.chico{padding:3px 10px;font-size:16px;line-height:1.1;min-width:32px}
+#rep-vel-n{min-width:42px;display:inline-block;color:var(--crema)}
+#rep-pos{font-size:12px;color:var(--der);min-width:110px}
+.menu{position:relative;display:inline-block}
+.disparador{display:flex;align-items:center;gap:10px;min-width:210px;justify-content:space-between}
+.disparador .flecha{font-size:10px;color:var(--tenue)}
+.disparador[aria-expanded="true"]{background:var(--nogal);color:var(--crema);border-color:var(--nogal-claro)}
+.lista{position:absolute;top:calc(100% + 5px);left:0;z-index:30;min-width:390px;max-width:min(92vw,470px);
+  max-height:330px;overflow-y:auto;background:var(--panel-alto);border:1px solid var(--nogal-claro);
+  border-radius:4px;padding:5px;box-shadow:0 10px 28px rgba(0,0,0,.55)}
+.item{display:block;width:100%;text-align:left;background:none;border:none;border-radius:3px;
+  padding:9px 11px;cursor:pointer;color:var(--texto);font-family:inherit}
+.item:hover,.item:focus-visible{background:var(--nogal);outline:none}
+.item b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:500;color:var(--crema)}
+.item span{display:block;font-size:11px;line-height:1.55;color:var(--tenue);margin-top:3px}
+.item:hover span,.item:focus-visible span{color:#E4DCCB}
+.item[aria-selected="true"] b::after{content:" ·";color:var(--izq)}
+.item[aria-selected="true"]{background:rgba(107,74,47,.42)}
+@media (max-width:600px){.lista{min-width:0;width:min(92vw,390px)}}
+.firma{max-width:1080px;margin:34px auto 0;padding-top:16px;border-top:1px solid var(--linea);
+  font-size:11.5px;line-height:1.7;color:var(--tenue)}
+.firma b{color:var(--texto);font-weight:400}
+.firma a{color:var(--der);text-decoration:none}
+.firma a:hover{text-decoration:underline}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.tecla.activa{transform:none}}
+@media (max-width:600px){h1{font-size:24px}:root{--blanca:32px;--negra:19px}.teclado{height:150px}}
+</style>
+</head>
+<body>
+<div class="marco">
+  <div class="cabecera">
+    <h1>Acordes al teclado</h1>
+    <p id="subtitulo"></p>
+  </div>
+
+  <div class="modos" role="tablist">
+    <button class="modo" id="m-acordes" role="tab" aria-selected="true">Acordes</button>
+    <button class="modo" id="m-rep" role="tab" aria-selected="false">Reproductor MIDI</button>
+  </div>
+
+  <div class="grupo">
+    <div class="etiqueta">Timbre</div>
+    <div class="menu" id="menu-timbre">
+      <button class="op especie disparador" id="disparador" aria-haspopup="listbox" aria-expanded="false">
+        <span id="timbre-actual"></span><span class="flecha">▼</span>
+      </button>
+      <div class="lista" id="lista-timbres" role="listbox" hidden></div>
+    </div>
+  </div>
+
+  <div id="vista-rep" hidden>
+    <div class="panel">
+      <div id="rep-info"><b>Ningún archivo cargado</b><span>Abrí un .mid para verlo sobre el teclado.</span></div>
+      <label class="archivo btn">Abrir archivo MIDI
+        <input type="file" id="rep-archivo" accept=".mid,.midi">
+      </label>
+      <div class="caja" style="margin-top:16px"><div class="teclado" id="teclado-rep"></div></div>
+      <div class="controles">
+        <button class="btn principal" id="rep-play">Reproducir</button>
+        <span id="rep-pos">compás –</span>
+        <div class="sep"></div>
+        <button class="btn izq" id="rep-mi" aria-pressed="true">Izquierda</button>
+        <button class="btn der" id="rep-md" aria-pressed="true">Derecha</button>
+      </div>
+      <div class="pie" style="margin-top:4px;padding-top:0;border:none">
+        <span><i class="m-I"></i>Mano izquierda</span>
+        <span><i class="m-D"></i>Mano derecha</span>
+        <span>El MIDI no lleva digitación: va el nombre de la nota</span>
+      </div>
+      <div class="reglas">
+        <label>Tempo
+          <button class="btn chico" id="rep-vel-m" aria-label="bajar 1%">−</button>
+          <input type="range" id="rep-vel" min="30" max="120" value="100" step="1">
+          <button class="btn chico" id="rep-vel-p" aria-label="subir 1%">+</button>
+          <span id="rep-vel-n">100%</span></label>
+        <label><input type="checkbox" id="rep-loop"> Repetir del compás
+          <input type="number" id="rep-desde" min="1" value="1"> al
+          <input type="number" id="rep-hasta" min="1" value="1"></label>
+      </div>
+    </div>
+  </div>
+
+  <div id="vista-acordes">
+  <div class="grupo">
+    <div class="etiqueta">Fundamental</div>
+    <div class="fila" id="raices"></div>
+  </div>
+  <div class="grupo">
+    <div class="etiqueta">Especie</div>
+    <div class="fila" id="especies"></div>
+  </div>
+
+  <div class="panel">
+    <div class="titulo-acorde"><strong id="cifrado"></strong><em id="nombre-largo"></em></div>
+    <div class="tonos" id="tonos"></div>
+    <div class="aviso" id="aviso"></div>
+    <div class="caja"><div class="teclado" id="teclado"></div></div>
+    <div class="controles">
+      <button class="btn principal" id="b-acorde">Tocar acorde</button>
+      <button class="btn" id="b-sube">Arpegiar ↑</button>
+      <button class="btn" id="b-baja">Arpegiar ↓</button>
+      <div class="sep"></div>
+      <button class="btn izq" id="b-izq">Solo izquierda</button>
+      <button class="btn der" id="b-der">Solo derecha</button>
+    </div>
+    <div class="pie">
+      <span><i class="m-I"></i>Mano izquierda</span>
+      <span><i class="m-D"></i>Mano derecha</span>
+      <span id="pie-span"></span>
+    </div>
+  </div>
+  </div>
+</div>
+
+<div class="firma">
+  Desarrollado por <b>Claudio Cespon</b>, con Claude Opus 5 ·
+  <a href="https://www.linkedin.com/in/TU-PERFIL" target="_blank" rel="noopener">LinkedIn</a>
+</div>
+
+<script>
+/* Ortografía por aritmética de letras, no por set fijo de sostenidos/bemoles.
+   Cada grado cae en la letra que le corresponde (la 7ª de Do es una forma de Si,
+   nunca de La) y la alteración sale de la diferencia con esa letra natural.
+   Un set fijo escribe Do7 como C-E-G-A#, que está mal. */
+const LETRAS = "CDEFGAB";
+const NATURAL = [0,2,4,5,7,9,11];
+/* nombre, índice de letra, altura */
+const RAICES = [["C",0,0],["Db",1,1],["D",1,2],["Eb",2,3],["E",2,4],["F",3,5],
+                ["F#",3,6],["G",4,7],["Ab",5,8],["A",5,9],["Bb",6,10],["B",6,11]];
+const NEGRAS = new Set([1,3,6,8,10]);
+/* Para el reproductor: un MIDI no trae tonalidad, así que no hay grado del que
+   deducir la ortografía. Se nombra con sostenidos, que es la convención. */
+const CROM = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+function deletrear(iLetra, altura, intervalo, paso){
+  const L = (iLetra + paso) % 7;
+  let acc = (altura + intervalo) % 12 - NATURAL[L];
+  while (acc > 6) acc -= 12;
+  while (acc < -6) acc += 12;
+  return LETRAS[L] + (acc > 0 ? "#".repeat(acc) : "b".repeat(-acc));
+}
+
+/* Intervalos de la MANO DERECHA respecto de la fundamental.
+   La izquierda siempre toca la fundamental en octava (ver voz()).
+   Falta acá "séptima mayor": {suf:"maj7", rh:[0,4,7,11], fn:["1","3","5","7"]}. */
+const ESPECIES = {
+  mayor:   { et:"mayor",   suf:"",    rh:[0,4,7],    st:[0,2,4],   fn:["1","3","5"],
+             nota:"Tríada cerrada. La derecha abre 1-3-5 sin estirar." },
+  menor:   { et:"menor",   suf:"m",   rh:[0,3,7],    st:[0,2,4],   fn:["1","♭3","5"],
+             nota:"Misma posición que la mayor con la tercera un semitono abajo." },
+  quinta:  { et:"quinta",  suf:"5",   rh:[0,7],      st:[0,4],     fn:["1","5"],
+             nota:"Sin tercera: no es mayor ni menor, y por eso entra en cualquiera de los dos. Con distorsión la tercera ensucia por los intermodulados, que es la razón real de que el rock lo use." },
+  septima: { et:"séptima", suf:"7",   rh:[0,4,7,10], st:[0,2,4,6], fn:["1","3","5","♭7"],
+             nota:"Dominante, no séptima mayor. Cuatro notas entran en la mano: abarca una séptima menor." },
+  novena:  { et:"novena",  suf:"9",   rh:[4,7,10,14],st:[2,4,6,1], fn:["3","5","♭7","9"],
+             nota:"Cinco notas no entran en una mano — abarcarían catorce semitonos. Se omite la fundamental en la derecha y se la queda la izquierda." },
+  oncena:  { et:"oncena",  suf:"11",  rh:[10,14,17], st:[6,1,3],   fn:["♭7","9","11"],
+             nota:"Se omite la tercera: choca en semitono con la oncena. Lo que queda es la tríada de ♭VII sobre la fundamental — un Bb sobre Do para C11." }
+};
+
+let raiz = 0, especie = "mayor";
+let ctx = null, master = null, corteMaster = null, teclas = {};
+
+/* ── Audio ─────────────────────────────────────────── */
+function audio(){
+  if (!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = TIMBRES[timbre].master;
+    corteMaster = ctx.createBiquadFilter();
+    corteMaster.type = "lowpass";
+    corteMaster.frequency.value = TIMBRES[timbre].corte;
+    /* Limitador de salida: el Hammond suma nueve parciales por nota y el Moog
+       tiene resonancia en el filtro. Con cinco notas juntas los picos quedan
+       cerca del techo, y saturar arruina el timbre justo cuando querés juzgarlo. */
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -6; lim.knee.value = 4;
+    lim.ratio.value = 12; lim.attack.value = .003; lim.release.value = .18;
+    master.connect(corteMaster).connect(lim).connect(ctx.destination);
+  }
+  if (ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+const frec = m => 440 * Math.pow(2, (m - 69) / 12);
+
+/* Tres motores de síntesis distintos, sin dependencias externas.
+   El color del timbre sale de la técnica, no de filtrar lo mismo de tres formas. */
+const TIMBRES = {
+  piano:   { et:"Piano de cola", master:.42, corte:9500,
+             nota:"Aditiva con parciales inarmónicos: la rigidez de la cuerda los estira hacia arriba, cada vez más en los agudos. Lleva dos cuerdas desafinadas al unísono, caída en dos etapas, los agudos apagándose antes que la fundamental, y ruido de martillo en el ataque. Falta la resonancia simpática, que necesita convolución." },
+  dx7:     { et:"DX7 E.Piano", master:.38, corte:6800,
+             nota:"El patch E.PIANO 1: seis operadores en el algoritmo 5, o sea tres pares modulador→portadora en paralelo. Una pila hace el cuerpo, otra el golpe metálico del tine con ratio 14:1, la tercera el sostenido desafinado. Con dos operadores tenés ataque o cuerpo; con tres pilas, los dos." },
+  rhodes:  { et:"Rhodes",  master:.45, corte:5200,
+             nota:"FM: una portadora modulada en frecuencia. El índice de modulación cae rápido, y eso da el golpe metálico del ataque que después se ablanda." },
+  hammond: { et:"Hammond", master:.26, corte:6500,
+             nota:"Aditiva con barras armónicas — nueve senoidales en ratios fijos, que es literalmente cómo funciona un Hammond. Sostenido plano y click de tecla." },
+  moog:    { et:"Moog",    master:.30, corte:9000,
+             nota:"Sustractiva: dos sierras desafinadas entre sí a un filtro pasabajos resonante, con envolvente de filtro que barre hacia abajo." }
+};
+let timbre = "piano";
+let bufRuido = null;
+
+function ruido(c){
+  if (!bufRuido){
+    bufRuido = c.createBuffer(1, Math.floor(c.sampleRate * .05), c.sampleRate);
+    const d = bufRuido.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  }
+  return bufRuido;
+}
+function aplicarTimbre(){
+  if (!ctx) return;
+  master.gain.setTargetAtTime(TIMBRES[timbre].master, ctx.currentTime, .01);
+  corteMaster.frequency.setTargetAtTime(TIMBRES[timbre].corte, ctx.currentTime, .01);
+}
+
+/* Barras armónicas: [ratio, nivel]. Registración media, con 16' y 8' al frente. */
+const BARRAS = [[.5,1],[1.5,.5],[1,1],[2,.65],[3,.32],[4,.26],[5,.14],[6,.11],[8,.18]];
+
+function sonar(midi, cuando, dur, vel){
+  const c = audio(), f = frec(midi);
+  const gol = (vel === undefined ? 96 : vel) / 96;      // 96 = golpe de referencia
+  const vol = .2 * Math.pow(2, -(midi - 60) / 46) * gol;
+
+  if (timbre === "piano"){
+    /* Inarmonicidad: los parciales de una cuerda real están estirados hacia
+       arriba por su propia rigidez, y el estiramiento crece en los agudos.
+       Con parciales exactos esto sonaría a órgano, no a piano. */
+    const B = .00028 * Math.pow(2, (midi - 60) / 26);
+    const brillo = .55 + .75 * gol;                       // el golpe fuerte abre armónicos
+    const unis = midi < 74 ? [-1.6, 1.6] : [0];           // cuerdas al unísono, desafinadas
+    const cola = dur * (midi < 48 ? 1.25 : midi > 84 ? .55 : 1);
+    for (let n = 1; n <= 11; n++){
+      const fn = f * n * Math.sqrt(1 + B * n * n);
+      if (fn > 9800) break;
+      const amp = Math.pow(n, -1.9 + .55 * brillo) * (n % 2 ? 1 : .72);
+      /* Los parciales agudos se apagan mucho antes que la fundamental: sin esto
+         el sonido queda estático y metálico durante toda la caída. */
+      const rapida = Math.max(.05, .16 / Math.pow(n, .55));
+      const larga = Math.max(.12, cola / Math.pow(n, .45));
+      for (const det of unis){
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = "sine"; o.frequency.value = fn; o.detune.value = det;
+        const pico = vol * amp * .62;
+        g.gain.setValueAtTime(.0001, cuando);
+        g.gain.exponentialRampToValueAtTime(pico, cuando + .002);
+        g.gain.exponentialRampToValueAtTime(pico * .34, cuando + rapida);
+        g.gain.exponentialRampToValueAtTime(.0001, cuando + larga);
+        o.connect(g).connect(master);
+        o.start(cuando); o.stop(cuando + larga + .05);
+      }
+    }
+    // martillo: ruido de banda ancha filtrado, muy corto
+    const mt = c.createBufferSource(), fm = c.createBiquadFilter(), gm = c.createGain();
+    mt.buffer = ruido(c);
+    fm.type = "bandpass"; fm.frequency.value = Math.min(f * 5, 5200); fm.Q.value = .7;
+    gm.gain.setValueAtTime(vol * .3 * brillo, cuando);
+    gm.gain.exponentialRampToValueAtTime(.0001, cuando + .028);
+    mt.connect(fm).connect(gm).connect(master);
+    mt.start(cuando);
+
+  } else if (timbre === "dx7"){
+    /* [ratio portadora, ratio modulador, índice inicial, caída del índice,
+        nivel, factor de duración, desafinación en cents] */
+    const PILAS = [
+      [1,  1, 2.6, .26, 1.00, 1.00,  0],   // cuerpo
+      [1, 14, 1.7, .085, .30,  .34,  0],   // tine: la mordida metálica
+      [1,  1,  .55, .95,  .46, 1.15,  7]   // sostenido, desafinado
+    ];
+    for (const [cr, mr, idx, idxDec, niv, fDur, det] of PILAS){
+      const dp = dur * fDur;
+      const port = c.createOscillator(), mod = c.createOscillator();
+      const gMod = c.createGain(), amp = c.createGain();
+      port.type = mod.type = "sine";
+      port.frequency.value = f * cr; port.detune.value = det;
+      mod.frequency.value = f * mr;
+      const prof = idx * f * mr;
+      gMod.gain.setValueAtTime(prof, cuando);
+      gMod.gain.exponentialRampToValueAtTime(Math.max(prof * .02, .01), cuando + idxDec);
+      gMod.gain.exponentialRampToValueAtTime(.01, cuando + dp);
+      mod.connect(gMod).connect(port.frequency);
+      amp.gain.setValueAtTime(.0001, cuando);
+      amp.gain.exponentialRampToValueAtTime(vol * niv, cuando + .005);
+      amp.gain.exponentialRampToValueAtTime(.0001, cuando + dp);
+      port.connect(amp).connect(master);
+      mod.start(cuando); port.start(cuando);
+      mod.stop(cuando + dp + .05); port.stop(cuando + dp + .05);
+    }
+
+  } else if (timbre === "rhodes"){
+    const port = c.createOscillator(), mod = c.createOscillator();
+    const gMod = c.createGain(), amp = c.createGain();
+    port.type = mod.type = "sine";
+    port.frequency.value = f; mod.frequency.value = f;
+    gMod.gain.setValueAtTime(f * 3.6, cuando);
+    gMod.gain.exponentialRampToValueAtTime(f * .18, cuando + .3);
+    gMod.gain.exponentialRampToValueAtTime(f * .01, cuando + dur);
+    mod.connect(gMod).connect(port.frequency);
+    amp.gain.setValueAtTime(.0001, cuando);
+    amp.gain.exponentialRampToValueAtTime(vol, cuando + .006);
+    amp.gain.exponentialRampToValueAtTime(.0001, cuando + dur);
+    port.connect(amp).connect(master);
+    mod.start(cuando); port.start(cuando);
+    mod.stop(cuando + dur + .05); port.stop(cuando + dur + .05);
+
+    const cuerpo = c.createOscillator(), gC = c.createGain();
+    cuerpo.type = "sine"; cuerpo.frequency.value = f;
+    gC.gain.setValueAtTime(.0001, cuando);
+    gC.gain.exponentialRampToValueAtTime(vol * .5, cuando + .012);
+    gC.gain.exponentialRampToValueAtTime(.0001, cuando + dur);
+    cuerpo.connect(gC).connect(master);
+    cuerpo.start(cuando); cuerpo.stop(cuando + dur + .05);
+
+  } else if (timbre === "hammond"){
+    const sost = Math.max(.12, dur - .1);
+    for (const [ratio, niv] of BARRAS){
+      const fr = f * ratio;
+      if (fr > 9000) continue;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = "sine"; o.frequency.value = fr;
+      o.detune.value = (Math.random() * 6 - 3);
+      g.gain.setValueAtTime(.0001, cuando);
+      g.gain.exponentialRampToValueAtTime(vol * niv * .5, cuando + .012);
+      g.gain.setValueAtTime(vol * niv * .5, cuando + sost);
+      g.gain.exponentialRampToValueAtTime(.0001, cuando + sost + .07);
+      o.connect(g).connect(master);
+      o.start(cuando); o.stop(cuando + sost + .12);
+    }
+    const cl = c.createBufferSource(), gCl = c.createGain();
+    cl.buffer = ruido(c);
+    gCl.gain.setValueAtTime(vol * .22, cuando);
+    gCl.gain.exponentialRampToValueAtTime(.0001, cuando + .04);
+    cl.connect(gCl).connect(master);
+    cl.start(cuando);
+
+  } else {
+    const sost = Math.max(.12, dur - .12);
+    const filtro = c.createBiquadFilter(), amp = c.createGain();
+    filtro.type = "lowpass"; filtro.Q.value = 7;
+    filtro.frequency.setValueAtTime(Math.min(f * 9, 11000), cuando);
+    filtro.frequency.exponentialRampToValueAtTime(Math.max(f * 2.2, 120), cuando + .42);
+    for (const det of [-7, 7]){
+      const o = c.createOscillator();
+      o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det;
+      o.connect(filtro); o.start(cuando); o.stop(cuando + sost + .18);
+    }
+    const sub = c.createOscillator(), gS = c.createGain();
+    sub.type = "square"; sub.frequency.value = f / 2;
+    gS.gain.value = .28;
+    sub.connect(gS).connect(filtro);
+    sub.start(cuando); sub.stop(cuando + sost + .18);
+    amp.gain.setValueAtTime(.0001, cuando);
+    amp.gain.exponentialRampToValueAtTime(vol * .8, cuando + .014);
+    amp.gain.exponentialRampToValueAtTime(vol * .55, cuando + .3);
+    amp.gain.setValueAtTime(vol * .55, cuando + sost);
+    amp.gain.exponentialRampToValueAtTime(.0001, cuando + sost + .13);
+    filtro.connect(amp).connect(master);
+  }
+}
+
+/* ── Voz y digitación ──────────────────────────────── */
+function dedosDerecha(iv){
+  /* Dos notas van 1-5 aunque sea un intervalo cómodo: dejar el 5 afuera y cerrar
+     con el 2 obliga a la mano a una posición contraída que no sirve para saltar. */
+  if (iv.length === 2) return [1, 5];
+  if (iv.length === 3) return (iv[2] - iv[0] <= 7) ? [1,3,5] : [1,2,5];
+  if (iv.length === 4) return [1,2,3,5];
+  return [1,2,3,4,5];
+}
+function voz(){
+  const e = ESPECIES[especie], [rn, rl, rp] = RAICES[raiz];
+  const base = 60 + rp;
+  const dedos = dedosDerecha(e.rh);
+  /* La derecha se ancla al REGISTRO, no al intervalo. Si la nota más grave del
+     voicing está lejos de la fundamental (la ♭7 de la oncena está a 10 semitonos),
+     anclarla literal deja la mano flotando una octava de más sobre la izquierda.
+     Se baja la octava que acerque el voicing a la octava de la fundamental. */
+  const oct = Math.round(e.rh[0] / 12) * 12;
+  const der = e.rh.map((iv, i) => ({
+    midi: base + iv - oct, mano:"D", dedo: dedos[i], fn: e.fn[i],
+    nom: deletrear(rl, rp, iv, e.st[i])
+  }));
+  const izq = [
+    { midi: base - 24, mano:"I", dedo:5, fn:"1", nom: rn },
+    { midi: base - 12, mano:"I", dedo:1, fn:"1", nom: rn }
+  ];
+  return izq.concat(der);
+}
+
+/* ── Teclado ───────────────────────────────────────── */
+const DESDE = 36, HASTA = 86;               // C2 … D6 (la más aguda es la 9ª de B9, MIDI 85)
+
+/* Parametrizado: el modo acordes usa un ámbito fijo y el reproductor lo calcula
+   del archivo. Devuelve el mapa de altura → elemento de tecla. */
+function dibujarTeclado(idCont, desde, hasta){
+  const cont = document.getElementById(idCont);
+  cont.innerHTML = ""; const mapa = {};
+  const est = getComputedStyle(document.documentElement);
+  const wB = parseFloat(est.getPropertyValue("--blanca"));
+  const wN = parseFloat(est.getPropertyValue("--negra"));
+  const blancas = [];
+  for (let m = desde; m <= hasta; m++) if (!NEGRAS.has(m % 12)) blancas.push(m);
+  cont.style.width = (blancas.length * wB) + "px";
+
+  blancas.forEach((m, i) => {
+    const k = document.createElement("div");
+    k.className = "tecla blanca";
+    k.style.left = (i * wB) + "px";
+    if (m % 12 === 0) k.innerHTML = '<span class="do">Do' + (Math.floor(m/12) - 1) + '</span>';
+    cont.appendChild(k); mapa[m] = k;
+  });
+  for (let m = desde; m <= hasta; m++){
+    if (!NEGRAS.has(m % 12)) continue;
+    const abajo = blancas.filter(b => b < m).length - 1;
+    const k = document.createElement("div");
+    k.className = "tecla negra";
+    k.style.left = ((abajo + 1) * wB - wN / 2) + "px";
+    cont.appendChild(k); mapa[m] = k;
+  }
+  return mapa;
+}
+
+function pintar(){
+  const e = ESPECIES[especie], notas = voz();
+  const cif = RAICES[raiz][0] + e.suf;
+  document.getElementById("cifrado").textContent = cif;
+  document.getElementById("nombre-largo").textContent =
+    RAICES[raiz][0] + " " + e.et;
+  const raros = notas.filter(n => ["Cb","Fb","E#","B#"].includes(n.nom));
+  document.getElementById("aviso").textContent = e.nota + (raros.length
+    ? " · " + raros.map(n => n.nom).join(" y ") + " es la escritura correcta del grado; suena igual que " +
+      raros.map(n => ({Cb:"Si",Fb:"Mi","E#":"Fa","B#":"Do"})[n.nom]).join(" y ") + "."
+    : "");
+
+  const cajaTonos = document.getElementById("tonos");
+  cajaTonos.innerHTML = "";
+  for (const n of notas){
+    const d = document.createElement("div");
+    d.className = "tono h-" + n.mano;
+    d.innerHTML = "<b>" + n.nom + "</b><span>" + n.fn + " · dedo " + n.dedo + "</span>";
+    cajaTonos.appendChild(d);
+  }
+
+  for (const k of Object.values(teclas)) k.querySelectorAll(".marca").forEach(x => x.remove());
+  for (const n of notas){
+    const k = teclas[n.midi]; if (!k) continue;
+    const m = document.createElement("div");
+    m.className = "marca";
+    const negra = NEGRAS.has(n.midi % 12);
+    m.innerHTML = '<div class="punto m-' + n.mano + '">' + n.dedo + '</div>' +
+      (negra ? "" : '<div class="nombre">' + n.nom + '</div>');
+    k.appendChild(m);
+  }
+  const dd = notas.filter(n => n.mano === "D");
+  document.getElementById("pie-span").textContent =
+    "Derecha: " + dd.map(n => n.dedo).join("-") + " · abarca " +
+    (dd[dd.length-1].midi - dd[0].midi) + " semitonos";
+}
+
+function tocar(mano, modo){
+  const c = audio(), t0 = c.currentTime + .05;
+  let ns = voz();
+  if (mano) ns = ns.filter(n => n.mano === mano);
+  ns.sort((a,b) => a.midi - b.midi);
+  if (modo === "baja") ns.reverse();
+  const paso = modo ? .19 : 0, dur = modo ? 1.1 : 2.2;
+  ns.forEach((n, i) => {
+    const cuando = t0 + i * paso;
+    sonar(n.midi, cuando, dur);
+    const k = teclas[n.midi]; if (!k) return;
+    setTimeout(() => {
+      k.classList.add("activa");
+      setTimeout(() => k.classList.remove("activa"), Math.min(dur * 1000, 420));
+    }, Math.max(0, (cuando - c.currentTime) * 1000));
+  });
+}
+
+/* ── Lectura de MIDI estándar ─────────────────────────────────────
+   Parser de SMF formato 0 y 1. Devuelve las notas ya emparejadas y el mapa de
+   tempos, porque un archivo puede cambiar de tempo en el medio y convertir
+   tiempo con un solo valor daría un desfasaje que crece a lo largo del tema. */
+function leerSMF(buf){
+  const v = new DataView(buf), U = new Uint8Array(buf);
+  const txt = o => String.fromCharCode(U[o],U[o+1],U[o+2],U[o+3]);
+  if (txt(0) !== "MThd") throw new Error("No parece un archivo MIDI");
+  const formato = v.getUint16(8), nPistas = v.getUint16(10), div = v.getUint16(12);
+  if (div & 0x8000) throw new Error("MIDI con división SMPTE, no soportado");
+  if (formato > 1) throw new Error("Formato " + formato + " no soportado");
+
+  let off = 14;
+  const crudos = [], tempos = [];
+  let compas = [4,4];
+
+  for (let p = 0; p < nPistas && off < U.length; p++){
+    if (txt(off) !== "MTrk"){ off += 8 + v.getUint32(off+4); continue; }
+    const largo = v.getUint32(off+4);
+    let i = off + 8; const fin = i + largo;
+    let t = 0, estado = 0;
+
+    while (i < fin){
+      let d = 0, b;
+      do { b = U[i++]; d = (d << 7) | (b & 0x7F); } while (b & 0x80);
+      t += d;
+      let s = U[i];
+      if (s & 0x80){ estado = s; i++; } else { s = estado; }
+
+      if (s === 0xFF){
+        const tipo = U[i++];
+        let len = 0; do { b = U[i++]; len = (len << 7) | (b & 0x7F); } while (b & 0x80);
+        if (tipo === 0x51 && len === 3)
+          tempos.push({ tick: t, us: (U[i] << 16) | (U[i+1] << 8) | U[i+2] });
+        else if (tipo === 0x58 && len >= 2)
+          compas = [U[i], Math.pow(2, U[i+1])];
+        i += len;
+      } else if (s === 0xF0 || s === 0xF7){
+        let len = 0; do { b = U[i++]; len = (len << 7) | (b & 0x7F); } while (b & 0x80);
+        i += len;
+      } else {
+        const tipo = s & 0xF0, ch = s & 0x0F;
+        if (tipo === 0x90 || tipo === 0x80){
+          const nota = U[i], vel = U[i+1]; i += 2;
+          crudos.push({ tick:t, ch, nota, vel, on: tipo === 0x90 && vel > 0 });
+        } else if (tipo === 0xC0 || tipo === 0xD0){ i += 1; }
+        else { i += 2; }
+      }
+    }
+    off = fin;
+  }
+
+  /* Emparejado: un note-on espera su note-off del mismo canal y altura.
+     Las que queden abiertas al final se cierran, en vez de descartarlas. */
+  crudos.sort((a,b) => a.tick - b.tick);
+  const abiertas = new Map(), notas = [];
+  let ultimo = 0;
+  for (const e of crudos){
+    ultimo = Math.max(ultimo, e.tick);
+    const k = e.ch + ":" + e.nota;
+    if (e.on){
+      if (!abiertas.has(k)) abiertas.set(k, []);
+      abiertas.get(k).push(e);
+    } else {
+      const pila = abiertas.get(k);
+      if (pila && pila.length){
+        const ini = pila.shift();
+        notas.push({ ini: ini.tick, fin: e.tick, nota: e.nota, vel: ini.vel, ch: ini.ch });
+      }
+    }
+  }
+  let colgadas = 0;
+  for (const pila of abiertas.values()) for (const ini of pila){
+    colgadas++;
+    notas.push({ ini: ini.tick, fin: ultimo + div, nota: ini.nota, vel: ini.vel, ch: ini.ch });
+  }
+  notas.sort((a,b) => a.ini - b.ini || a.nota - b.nota);
+  if (!tempos.length) tempos.push({ tick:0, us:500000 });
+  tempos.sort((a,b) => a.tick - b.tick);
+  if (tempos[0].tick > 0) tempos.unshift({ tick:0, us:500000 });
+
+  /* tick → segundo, acumulando cada tramo con su tempo */
+  const hitos = [];
+  let acum = 0;
+  for (let k = 0; k < tempos.length; k++){
+    hitos.push({ tick: tempos[k].tick, seg: acum, us: tempos[k].us });
+    if (k + 1 < tempos.length)
+      acum += (tempos[k+1].tick - tempos[k].tick) * (tempos[k].us / 1e6) / div;
+  }
+  const aSeg = tick => {
+    let h = hitos[0];
+    for (const x of hitos) if (x.tick <= tick) h = x; else break;
+    return h.seg + (tick - h.tick) * (h.us / 1e6) / div;
+  };
+  for (const n of notas){ n.t0 = aSeg(n.ini); n.t1 = aSeg(n.fin); }
+
+  /* Los compases se cuentan sobre el INICIO de la última nota, no sobre su final:
+     una nota que arranca dentro del último compás suelta su cola pasada la barra,
+     y contar por el final agrega un compás fantasma vacío. */
+  const ticksPorCompas = compas[0] * div * 4 / compas[1];
+  const ultimoInicio = notas.length ? Math.max(...notas.map(n => n.ini)) : 0;
+  return {
+    notas, div, compas, ticksPorCompas,
+    bpm: Math.round(60e6 / tempos[0].us),
+    compases: Math.floor(ultimoInicio / ticksPorCompas) + 1,
+    dur: aSeg(ultimo),
+    aSeg, colgadas,
+    canales: [...new Set(notas.map(n => n.ch))].sort((a,b) => a-b)
+  };
+}
+
+/* ── Reproductor ──────────────────────────────────────────────────
+   Planificador con anticipación: un temporizador de 25 ms agenda sólo lo que
+   entra en los próximos 250 ms. Agendar el archivo entero de una crearía miles
+   de nodos de audio en el mismo instante y trabaría el navegador.
+   El resaltado NO usa setTimeout: lee el reloj del contexto de audio en cada
+   cuadro, porque un temporizador de JS se desfasa del audio en archivos largos. */
+const REP = {
+  obra:null, tocando:false, t0:0, pos:0, idx:0, vel:1,
+  loop:false, desde:0, hasta:0, manos:{0:true,1:true},
+  teclas:{}, desdeTecla:36, hastaTecla:86, encendidas:new Map(),
+  timer:null, raf:null
+};
+
+function repNotasActivas(){
+  return REP.obra.notas.filter(n => REP.manos[repMano(n)] !== false);
+}
+function repMano(n){
+  /* Los archivos del generador traen izquierda en canal 0 y derecha en canal 1.
+     Para MIDI de otro origen que use un solo canal, se separa por altura. */
+  if (REP.obra.canales.length > 1) return n.ch === 0 ? 0 : 1;
+  return n.nota < 60 ? 0 : 1;
+}
+function repVentana(){
+  const o = REP.obra;
+  return REP.loop
+    ? [REP.desde * o.ticksPorCompas, REP.hasta * o.ticksPorCompas]
+    : [0, Infinity];
+}
+function repArrancar(){
+  if (!REP.obra || REP.tocando) return;
+  const c = audio();
+  const [tk0] = repVentana();
+  REP.pos = REP.obra.aSeg(tk0);
+  REP.t0 = c.currentTime + .08;
+  REP.idx = 0; REP.tocando = true;
+  REP.timer = setInterval(repAgendar, 25);
+  repAgendar();
+  REP.raf = requestAnimationFrame(repPintar);
+  document.getElementById("rep-play").textContent = "Parar";
+}
+function repParar(){
+  REP.tocando = false;
+  clearInterval(REP.timer); cancelAnimationFrame(REP.raf);
+  for (const m of REP.encendidas.keys()) repApagar(m);
+  REP.encendidas.clear();
+  document.getElementById("rep-play").textContent = "Reproducir";
+  document.getElementById("rep-pos").textContent = "compás –";
+}
+function repReloj(){ return (audio().currentTime - REP.t0) * REP.vel + REP.pos; }
+
+function repAgendar(){
+  if (!REP.tocando) return;
+  const c = audio(), o = REP.obra;
+  const [tk0, tk1] = repVentana();
+  const s0 = o.aSeg(tk0), s1 = tk1 === Infinity ? o.dur + .3 : o.aSeg(tk1);
+  const horizonte = repReloj() + .25;
+  const lista = repNotasActivas();
+
+  while (REP.idx < lista.length){
+    const n = lista[REP.idx];
+    if (n.t0 < s0){ REP.idx++; continue; }
+    if (n.t0 >= s1) break;
+    if (n.t0 > horizonte) break;
+    const cuando = REP.t0 + (n.t0 - REP.pos) / REP.vel;
+    const dur = Math.max(.08, (n.t1 - n.t0) / REP.vel);
+    if (cuando > c.currentTime) sonar(n.nota, cuando, dur, n.vel);
+    REP.idx++;
+  }
+  if (repReloj() >= s1){
+    if (REP.loop){
+      REP.pos = s0; REP.t0 = c.currentTime + .02; REP.idx = 0;
+    } else {
+      repParar();
+    }
+  }
+}
+
+/* Marcadores iguales a los del modo acordes, pero sin número de dedo: un archivo
+   MIDI no lleva digitación. Queda el punto del color de la mano con el nombre de
+   la nota, que aparece y se va con cada nota. */
+function repEncender(m, mano){
+  const k = REP.teclas[m]; if (!k) return;
+  k.classList.add("activa");
+  const mar = document.createElement("div");
+  mar.className = "marca";
+  mar.innerHTML = '<div class="punto solo m-' + (mano === 0 ? "I" : "D") + '">' +
+                  CROM[m % 12] + '</div>';
+  k.appendChild(mar);
+}
+function repApagar(m){
+  const k = REP.teclas[m]; if (!k) return;
+  k.classList.remove("activa");
+  k.querySelectorAll(".marca").forEach(x => x.remove());
+}
+
+function repPintar(){
+  if (!REP.tocando) return;
+  const t = repReloj(), o = REP.obra;
+  const debe = new Map();
+  for (const n of repNotasActivas()){
+    if (n.t0 > t) break;
+    if (n.t1 > t) debe.set(n.nota, repMano(n));
+  }
+  for (const m of REP.encendidas.keys()) if (!debe.has(m)) repApagar(m);
+  for (const [m, mano] of debe) if (!REP.encendidas.has(m)) repEncender(m, mano);
+  REP.encendidas = debe;
+  const compas = Math.min(o.compases, Math.floor(repBuscarTick(t) / o.ticksPorCompas) + 1);
+  document.getElementById("rep-pos").textContent = "compás " + compas + " / " + o.compases;
+  REP.raf = requestAnimationFrame(repPintar);
+}
+function repBuscarTick(seg){
+  const o = REP.obra;
+  let lo = 0, hi = o.compases * o.ticksPorCompas;
+  for (let i = 0; i < 24; i++){
+    const m = (lo + hi) / 2;
+    if (o.aSeg(m) < seg) lo = m; else hi = m;
+  }
+  return lo;
+}
+
+function repCargar(buf, nombre){
+  const o = leerSMF(buf);
+  REP.obra = o;
+  repParar();
+  if (!o.notas.length) throw new Error("El archivo no tiene notas");
+  let lo = 127, hi = 0;
+  for (const n of o.notas){ if (n.nota < lo) lo = n.nota; if (n.nota > hi) hi = n.nota; }
+  REP.desdeTecla = Math.min(36, lo);
+  REP.hastaTecla = Math.max(86, hi);
+  REP.teclas = dibujarTeclado("teclado-rep", REP.desdeTecla, REP.hastaTecla);
+  REP.desde = 0; REP.hasta = o.compases;
+  document.getElementById("rep-desde").value = 1;
+  document.getElementById("rep-hasta").value = o.compases;
+  document.getElementById("rep-info").innerHTML =
+    "<b>" + nombre + "</b><span>" + o.notas.length + " notas · " + o.compases +
+    " compases · " + o.bpm + " bpm · " + o.compas[0] + "/" + o.compas[1] +
+    " · " + o.dur.toFixed(1) + " s" +
+    (o.colgadas ? " · " + o.colgadas + " notas sin apagar, cerradas al final" : "") +
+    "</span>";
+}
+
+/* ── Arranque ──────────────────────────────────────── */
+const filaR = document.getElementById("raices");
+RAICES.forEach(([n], i) => {
+  const b = document.createElement("button");
+  b.className = "op" + (n.length > 1 ? " alterada" : "");
+  b.textContent = n; b.setAttribute("aria-pressed", i === 0);
+  b.onclick = () => {
+    raiz = i;
+    filaR.querySelectorAll(".op").forEach((x, j) => x.setAttribute("aria-pressed", j === i));
+    pintar();
+  };
+  filaR.appendChild(b);
+});
+const filaE = document.getElementById("especies");
+Object.keys(ESPECIES).forEach((k, i) => {
+  const b = document.createElement("button");
+  b.className = "op especie"; b.textContent = ESPECIES[k].et;
+  b.setAttribute("aria-pressed", i === 0);
+  b.onclick = () => {
+    especie = k;
+    filaE.querySelectorAll(".op").forEach(x => x.setAttribute("aria-pressed", false));
+    b.setAttribute("aria-pressed", true);
+    pintar();
+  };
+  filaE.appendChild(b);
+});
+/* El timbre va en desplegable, no en fila: la lista de motores es abierta y una
+   fila horizontal deja de ser legible pasados cuatro o cinco. La fundamental y la
+   especie sí quedan a la vista — son el eje de comparación y meterlas en un menú
+   agregaría clicks a la operación más frecuente. */
+const disparador = document.getElementById("disparador");
+const lista = document.getElementById("lista-timbres");
+const rotulo = document.getElementById("timbre-actual");
+
+function abrir(v){
+  lista.hidden = !v;
+  disparador.setAttribute("aria-expanded", v);
+  if (v) lista.querySelector('[aria-selected="true"]').focus();
+}
+Object.keys(TIMBRES).forEach(k => {
+  const it = document.createElement("button");
+  it.className = "item"; it.setAttribute("role", "option");
+  it.setAttribute("aria-selected", k === timbre);
+  it.innerHTML = "<b>" + TIMBRES[k].et + "</b><span>" + TIMBRES[k].nota + "</span>";
+  it.onclick = () => {
+    timbre = k;
+    rotulo.textContent = TIMBRES[k].et;
+    lista.querySelectorAll(".item").forEach((x, j) =>
+      x.setAttribute("aria-selected", Object.keys(TIMBRES)[j] === k));
+    abrir(false); disparador.focus();
+    aplicarTimbre(); tocar(null, null);
+  };
+  lista.appendChild(it);
+});
+rotulo.textContent = TIMBRES[timbre].et;
+disparador.onclick = e => { e.stopPropagation(); abrir(lista.hidden); };
+document.addEventListener("click", e => {
+  if (!lista.hidden && !document.getElementById("menu-timbre").contains(e.target)) abrir(false);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !lista.hidden){ abrir(false); disparador.focus(); }
+});
+
+teclas = dibujarTeclado("teclado", DESDE, HASTA);
+pintar();
+document.getElementById("b-acorde").onclick = () => tocar(null, null);
+document.getElementById("b-sube").onclick   = () => tocar(null, "sube");
+document.getElementById("b-baja").onclick   = () => tocar(null, "baja");
+document.getElementById("b-izq").onclick    = () => tocar("I", "sube");
+document.getElementById("b-der").onclick    = () => tocar("D", "sube");
+
+/* ── Conmutador de modos y cableado del reproductor ── */
+const vA = document.getElementById("vista-acordes"), vR = document.getElementById("vista-rep");
+const mA = document.getElementById("m-acordes"), mR = document.getElementById("m-rep");
+const SUBT = {
+  acordes: "Elegí fundamental y especie. El teclado muestra la digitación de las dos manos: ámbar la izquierda, teal la derecha. 1 = pulgar, 5 = meñique.",
+  rep: "Abrí un archivo MIDI y se ejecuta sobre el mismo teclado. Bajá el tempo hasta que salga, repetí un tramo, o silenciá una mano para tocarla vos."
+};
+function modo(rep){
+  if (rep) repParar();
+  document.getElementById("subtitulo").textContent = rep ? SUBT.rep : SUBT.acordes;
+  vA.hidden = rep; vR.hidden = !rep;
+  mA.setAttribute("aria-selected", !rep); mR.setAttribute("aria-selected", rep);
+}
+modo(false);
+mA.onclick = () => modo(false);
+mR.onclick = () => modo(true);
+
+document.getElementById("rep-archivo").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const lector = new FileReader();
+  lector.onload = () => {
+    try { repCargar(lector.result, f.name); }
+    catch (err) {
+      document.getElementById("rep-info").innerHTML =
+        "<b>No se pudo leer el archivo</b><span>" + err.message + "</span>";
+    }
+  };
+  lector.readAsArrayBuffer(f);
+};
+document.getElementById("rep-play").onclick = () => REP.tocando ? repParar() : repArrancar();
+/* Cambiar el tempo NO reinicia: se reancla el reloj en la posición actual. Con
+   pasos de 1% reiniciar sería inusable — volverías al principio en cada clic.
+   Lo ya agendado (250 ms como mucho) termina de sonar al tempo anterior. */
+const VEL_MIN = 30, VEL_MAX = 120;      // en el código, no leídos del DOM
+function repVelocidad(pct){
+  pct = Math.max(VEL_MIN, Math.min(VEL_MAX, Math.round(pct)));
+  document.getElementById("rep-vel").value = pct;
+  document.getElementById("rep-vel-n").textContent = pct + "%";
+  if (REP.tocando){
+    REP.pos = repReloj();
+    REP.t0 = audio().currentTime;
+  }
+  REP.vel = pct / 100;
+}
+document.getElementById("rep-vel").oninput = e => repVelocidad(+e.target.value);
+document.getElementById("rep-vel-m").onclick = () =>
+  repVelocidad(+document.getElementById("rep-vel").value - 1);
+document.getElementById("rep-vel-p").onclick = () =>
+  repVelocidad(+document.getElementById("rep-vel").value + 1);
+document.getElementById("rep-loop").onchange = e => { REP.loop = e.target.checked; };
+function limites(){
+  const o = REP.obra; if (!o) return;
+  const d = document.getElementById("rep-desde"), h = document.getElementById("rep-hasta");
+  d.max = h.max = o.compases;
+  let a = Math.max(1, Math.min(o.compases, +d.value || 1));
+  let b = Math.max(a + 1, Math.min(o.compases + 1, +h.value || o.compases));
+  d.value = a; h.value = Math.min(b, o.compases);
+  REP.desde = a - 1; REP.hasta = Math.max(a, +h.value);
+}
+document.getElementById("rep-desde").onchange = limites;
+document.getElementById("rep-hasta").onchange = limites;
+for (const [id, mano] of [["rep-mi", 0], ["rep-md", 1]]){
+  const b = document.getElementById(id);
+  b.onclick = () => {
+    const on = b.getAttribute("aria-pressed") !== "true";
+    b.setAttribute("aria-pressed", on);
+    b.style.opacity = on ? "1" : ".4";
+    REP.manos[mano] = on;
+  };
+}
+</script>
+</body>
+</html>
