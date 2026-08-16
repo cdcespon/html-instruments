@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Herramientas de estudio musical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--fondo:#161412;--panel:#201D1A;--panel-alto:#2A2622;--acento:#6E4E36;--acento-claro:#8A6440;
+  --crema:#EDE7DA;--texto:#C9C0B0;--tenue:#8A8073;--linea:#332E28;--teal:#4FB8A8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--fondo);color:var(--texto);font-family:'IBM Plex Mono',ui-monospace,monospace;
+  padding:40px 20px 60px}
+.marco{max-width:940px;margin:0 auto}
+.cabecera{border-left:3px solid var(--acento-claro);padding-left:16px;margin-bottom:34px}
+h1{font-family:'Barlow Condensed',system-ui,sans-serif;font-size:36px;font-weight:600;color:var(--crema);line-height:1.1}
+.cabecera p{font-size:13px;color:var(--tenue);margin-top:8px;line-height:1.7;max-width:74ch}
+.lista{display:grid;gap:10px}
+a.card{display:block;background:var(--panel);border:1px solid var(--linea);border-left:3px solid var(--acento);
+  border-radius:4px;padding:18px 20px;text-decoration:none;color:inherit;transition:background .15s,border-color .15s}
+a.card:hover{background:var(--panel-alto);border-left-color:var(--acento-claro)}
+a.card:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+a.card b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:600;color:var(--crema)}
+a.card span{display:block;font-size:12.5px;line-height:1.7;color:var(--tenue);margin-top:5px;max-width:76ch}
+a.card em{font-style:normal;display:inline-block;font-size:11px;color:var(--teal);margin-top:8px}
+.nota{margin-top:30px;padding-top:18px;border-top:1px solid var(--linea);font-size:12px;
+  line-height:1.8;color:var(--tenue);max-width:76ch}
+.nota b{color:var(--texto);font-weight:400}
+.firma{margin-top:26px;padding-top:16px;border-top:1px solid var(--linea);font-size:11.5px;color:var(--tenue)}
+.firma b{color:var(--texto);font-weight:400}
+.firma a{color:var(--teal);text-decoration:none}
+@media (max-width:600px){h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="marco">
+  <div class="cabecera">
+    <h1>Herramientas de estudio musical</h1>
+    <p>Cinco aplicaciones para practicar, una por instrumento. Cada una es un archivo HTML suelto: se abre haciendo doble clic, funciona sin conexión y no necesita instalar nada. Todo el sonido se genera en el navegador.</p>
+  </div>
+
+  <div class="lista">
+    <a class="card" href="keyboard-chords.html">
+      <b>Teclado</b>
+      <span>Acordes con la digitación de las dos manos, y un reproductor de archivos MIDI sobre el mismo teclado, con tempo variable y repetición por compases.</span>
+      <em>Doce fundamentales × seis especies · cinco motores de síntesis</em>
+    </a>
+    <a class="card" href="guitar-chords.html">
+      <b>Guitarra</b>
+      <span>Generador de digitaciones de acordes: recorre todas las combinaciones que la mano alcanza y las ordena por lo que un guitarrista prioriza. Más escalas y las cinco posiciones de la pentatónica.</span>
+      <em>Cuatro afinaciones · ocho especies · cejilla detectada automáticamente</em>
+    </a>
+    <a class="card" href="bass-fretboard.html">
+      <b>Bajo</b>
+      <span>Optimizador de posiciones: elige en qué cuerda tocar cada nota de una línea para mover la mano lo menos posible. Más escalas y las cinco posiciones de la pentatónica.</span>
+      <em>Cuatro afinaciones · cuatro líneas en las doce tonalidades</em>
+    </a>
+    <a class="card" href="drum-grooves.html">
+      <b>Batería</b>
+      <span>Grooves explicados y editables, con práctica por capas: bombo solo, después con redoblante, después el hi-hat. El color indica qué extremidad toca cada golpe.</span>
+      <em>Siete grooves · grilla de corcheas o de tresillos</em>
+    </a>
+    <a class="card" href="harmonica-map.html">
+      <b>Armónica</b>
+      <span>Mapa completo de agujeros, con las notas que se consiguen doblando y en qué dirección. Las posiciones explicadas, y un buscador de qué armónica hace falta para tocar en cada tonalidad.</span>
+      <em>Doce armónicas × seis posiciones · bends calculados, no tabulados</em>
+    </a>
+  </div>
+
+  <div class="nota">
+    En <b>riffs-midi/</b> hay 42 archivos de patrones para practicar —blues, rock, montuno,
+    bossa y chacarera en seis tonalidades— con la mano izquierda y la derecha en pistas
+    separadas. Se abren desde el reproductor de la app de teclado. El archivo
+    <b>generar.py</b> produce otras tonalidades y tempos: <b>python3 riffs-midi/generar.py --listar</b>.
+  </div>
+
+  <div class="firma">
+    Desarrollado por <b>Claudio Cespon</b>, con Claude Opus 5 ·
+    <a href="https://www.linkedin.com/in/claudio-cespon/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+</div>
+</body>
+</html>

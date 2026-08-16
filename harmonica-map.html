@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armónica — mapa, posiciones y bends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#12130F; --panel:#1B1D18; --panel-alto:#252821;
+  --metal:#4A5240; --metal-claro:#6E7A5E;
+  --crema:#E7E6DC; --texto:#C2C3B6; --tenue:#7C8073; --linea:#2C2F27;
+  --sopla:#5AA9D6;   /* soplar */
+  --aspira:#E8A23A;  /* aspirar */
+  --bend:#C2637E;    /* nota doblada */
+  --fuera:#3A3D34;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--fondo);color:var(--texto);
+  font-family:'IBM Plex Mono',ui-monospace,monospace;padding:24px 18px 44px}
+.marco{max-width:1080px;margin:0 auto}
+.cabecera{border-left:3px solid var(--metal-claro);padding-left:14px;margin-bottom:22px}
+h1{font-family:'Barlow Condensed',system-ui,sans-serif;font-size:30px;font-weight:600;color:var(--crema)}
+.cabecera p{font-size:12.5px;color:var(--tenue);margin-top:5px;line-height:1.6;max-width:78ch}
+.grupo{margin-bottom:13px}
+.etiqueta{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tenue);margin-bottom:7px}
+.fila{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.op{font-size:13px;background:var(--panel);color:var(--tenue);border:1px solid var(--linea);
+  border-radius:3px;padding:8px 12px;cursor:pointer;font-family:inherit;
+  transition:background .14s,color .14s,border-color .14s}
+.op:hover{background:var(--panel-alto);color:var(--texto)}
+.op[aria-pressed="true"]{background:var(--metal);color:var(--crema);border-color:var(--metal-claro)}
+.op:focus-visible{outline:2px solid var(--sopla);outline-offset:2px}
+.op.ancho{font-family:'Barlow Condensed',sans-serif;font-size:15px;padding:8px 15px}
+.op small{display:block;font-size:10px;opacity:.8;margin-top:1px}
+.panel{background:var(--panel);border:1px solid var(--linea);border-top:3px solid var(--metal);
+  border-radius:4px;padding:20px 18px 18px;margin-top:18px}
+.titulo{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;margin-bottom:5px}
+.titulo strong{font-family:'Barlow Condensed',sans-serif;font-size:27px;font-weight:600;color:var(--crema)}
+.titulo em{font-style:normal;font-size:12px;color:var(--tenue)}
+.aviso{font-size:12.5px;line-height:1.7;color:var(--tenue);margin:11px 0 17px;max-width:78ch;
+  border-left:2px solid var(--metal);padding-left:11px}
+.mapa{overflow-x:auto;padding-bottom:6px}
+table.arm{border-collapse:separate;border-spacing:4px;min-width:660px;margin:0 auto}
+table.arm th{font-weight:400;font-size:11px;color:var(--tenue);text-align:right;padding-right:10px;white-space:nowrap}
+table.arm td.h{width:62px;height:42px;border-radius:4px;text-align:center;vertical-align:middle;
+  border:1px solid var(--linea);background:#191B16;cursor:pointer;transition:transform .06s}
+/* Con la especificidad justa: `table.arm td.h` de arriba le gana a `td.h.sopla`
+   y el color no se aplicaba. A ojo no se notaba — las activas quedaban del mismo
+   gris que las apagadas. */
+table.arm td.h.on{border-color:transparent;color:#0F110D}
+table.arm td.h.sopla{background:var(--sopla)}
+table.arm td.h.aspira{background:var(--aspira)}
+table.arm td.h.bend{background:var(--bend)}
+table.arm td.h.fuera{background:#171914;color:var(--fuera);cursor:default;border-style:dashed}
+table.arm td.h.tonica{outline:2px solid var(--crema);outline-offset:1px}
+td.h b{display:block;font-size:14px;font-weight:500;line-height:1.15}
+td.h span{display:block;font-size:9.5px;opacity:.8;margin-top:1px}
+td.h.activa{transform:translateY(2px);filter:brightness(1.15)}
+tr.num td{font-size:12px;color:var(--crema);text-align:center;padding-bottom:2px;border:none;background:none;height:auto}
+.tabla-tab{font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.9;white-space:pre;
+  background:#0F110D;border:1px solid var(--linea);border-radius:4px;padding:13px 15px;
+  margin-top:16px;overflow-x:auto;color:var(--texto)}
+.controles{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+.btn{font-family:'Barlow Condensed',sans-serif;font-size:15px;background:var(--panel-alto);
+  color:var(--crema);border:1px solid var(--linea);border-radius:3px;padding:9px 16px;cursor:pointer}
+.btn:hover{background:var(--metal);border-color:var(--metal-claro)}
+.btn:focus-visible{outline:2px solid var(--sopla);outline-offset:2px}
+.btn.principal{background:var(--metal);border-color:var(--metal-claro)}
+.metricas{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px;padding-top:13px;
+  border-top:1px solid var(--linea);font-size:11.5px;color:var(--tenue)}
+.metricas b{color:var(--crema);font-weight:400}
+.leyenda{display:flex;gap:17px;flex-wrap:wrap;margin-top:12px;font-size:11.5px;color:var(--tenue)}
+.leyenda i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.buscador{background:var(--panel-alto);border:1px solid var(--linea);border-radius:4px;
+  padding:14px 16px;margin-top:18px}
+.buscador .r{font-size:13px;line-height:1.8;color:var(--texto);margin-top:9px}
+.buscador .r b{color:var(--crema);font-weight:500}
+.firma{max-width:1080px;margin:34px auto 0;padding-top:16px;border-top:1px solid var(--linea);
+  font-size:11.5px;line-height:1.7;color:var(--tenue)}
+.firma b{color:var(--texto);font-weight:400}
+.firma a{color:var(--sopla);text-decoration:none}
+@media (max-width:640px){h1{font-size:24px} table.arm td.h{width:50px;height:38px}}
+</style>
+</head>
+<body>
+<div class="marco">
+  <div class="cabecera">
+    <h1>Armónica — mapa, posiciones y bends</h1>
+    <p>La armónica diatónica no tiene todas las notas: la disposición es irregular a propósito y lo que falta se consigue doblando. Y casi nunca se toca en la tonalidad que dice la tapa — una armónica en Do se usa sobre todo para tocar blues en Sol.</p>
+  </div>
+
+  <div class="grupo">
+    <div class="etiqueta">Armónica</div>
+    <div class="fila" id="armonicas"></div>
+  </div>
+  <div class="grupo">
+    <div class="etiqueta">Posición</div>
+    <div class="fila" id="posiciones"></div>
+  </div>
+  <div class="grupo">
+    <div class="etiqueta">Escala a resaltar</div>
+    <div class="fila" id="escalas"></div>
+  </div>
+
+  <div class="panel">
+    <div class="titulo"><strong id="a-nom"></strong><em id="a-sub"></em></div>
+    <div class="aviso" id="a-aviso"></div>
+    <div class="mapa"><table class="arm" id="mapa"></table></div>
+    <div class="controles">
+      <button class="btn principal" id="tocar-escala">Tocar la escala</button>
+      <button class="btn" id="ver-todo">Ver todas las notas</button>
+      <span id="a-info" style="font-size:12px;color:var(--sopla)"></span>
+    </div>
+    <div class="tabla-tab" id="a-tab"></div>
+    <div class="metricas" id="a-metricas"></div>
+    <div class="leyenda">
+      <span><i style="background:var(--sopla)"></i>Soplar</span>
+      <span><i style="background:var(--aspira)"></i>Aspirar</span>
+      <span><i style="background:var(--bend)"></i>Doblada (bend)</span>
+      <span><i style="background:#171914;border:1px dashed var(--fuera)"></i>No pertenece a la escala</span>
+      <span>Hacé clic en cualquier agujero para escucharlo</span>
+    </div>
+
+    <div class="buscador">
+      <div class="etiqueta" style="margin-bottom:4px">¿Qué armónica necesito?</div>
+      <div class="fila" id="buscar"></div>
+      <div class="r" id="buscar-r"></div>
+    </div>
+  </div>
+</div>
+
+<div class="firma">
+  Desarrollado por <b>Claudio Cespon</b>, con Claude Opus 5 ·
+  <a href="https://www.linkedin.com/in/claudio-cespon/" target="_blank" rel="noopener">LinkedIn</a>
+</div>
+
+<script>
+/* ═══ Modelo ══════════════════════════════════════════════════════
+   Afinación Richter, la de toda armónica diatónica. Referencia en Do;
+   las otras once son la misma disposición transportada. */
+const SOPLA_DO = [60,64,67,72,76,79,84,88,91,96];   // Do Mi Sol Do Mi Sol Do Mi Sol Do
+const ASPIRA_DO = [62,67,71,74,77,81,83,86,89,93];  // Re Sol Si Re Fa La Si Re Fa La
+
+const CROM = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const LETRAS = "CDEFGAB", NATURAL = [0,2,4,5,7,9,11];
+const RAICES = [["C",0,0],["Db",1,1],["D",1,2],["Eb",2,3],["E",2,4],["F",3,5],
+                ["F#",3,6],["G",4,7],["Ab",5,8],["A",5,9],["Bb",6,10],["B",6,11]];
+function deletrear(iL, alt, iv, paso){
+  const L = (iL + paso) % 7;
+  let a = (alt + iv) % 12 - NATURAL[L];
+  while (a > 6) a -= 12;
+  while (a < -6) a += 12;
+  return LETRAS[L] + (a > 0 ? "#".repeat(a) : "b".repeat(-a));
+}
+
+/* Cuántos semitonos doblá cada agujero, y en qué dirección.
+   NO es una tabla memorizada: la lengüeta más aguda de cada agujero se puede
+   bajar hasta casi alcanzar a la otra, así que los semitonos disponibles son
+   el intervalo entre las dos lengüetas menos uno. En los agujeros 1 a 6 la
+   aspirada es más aguda y por eso se dobla aspirando; del 7 al 10 se invierte. */
+function bendsDe(h){
+  const s = SOPLA_DO[h], a = ASPIRA_DO[h];
+  const d = Math.abs(a - s) - 1;
+  if (d <= 0) return {n:0, dir:null};
+  return {n:d, dir: a > s ? "aspira" : "sopla"};
+}
+
+/* Posición N = N-1 quintas por encima de la tonalidad de la armónica.
+   2ª posición sobre una armónica en Do da Sol: es el blues de toda la vida. */
+const POSICIONES = [
+  {n:1,  et:"1ª", nom:"directa",   modo:"mayor",     desc:"La tonalidad de la tapa. Escala mayor, folk y country."},
+  {n:2,  et:"2ª", nom:"cruzada",   modo:"mixolidia", desc:"La del blues. Una quinta arriba de la tapa."},
+  {n:3,  et:"3ª", nom:"tercera",   modo:"dórica",    desc:"Menor con la sexta mayor. Blues menor y modal."},
+  {n:4,  et:"4ª", nom:"cuarta",    modo:"menor",     desc:"Menor natural. Poco usada, exige bends."},
+  {n:5,  et:"5ª", nom:"quinta",    modo:"frigia",    desc:"Menor con la segunda bemol. Sonido español."},
+  {n:12, et:"12ª",nom:"duodécima", modo:"lidia",     desc:"Una cuarta abajo de la tapa. Mayor con la cuarta aumentada."}
+];
+const MODOS = {
+  mayor:     {iv:[0,2,4,5,7,9,11], st:[0,1,2,3,4,5,6]},
+  mixolidia: {iv:[0,2,4,5,7,9,10], st:[0,1,2,3,4,5,6]},
+  "dórica":  {iv:[0,2,3,5,7,9,10], st:[0,1,2,3,4,5,6]},
+  menor:     {iv:[0,2,3,5,7,8,10], st:[0,1,2,3,4,5,6]},
+  frigia:    {iv:[0,1,3,5,7,8,10], st:[0,1,2,3,4,5,6]},
+  lidia:     {iv:[0,2,4,6,7,9,11], st:[0,1,2,3,4,5,6]}
+};
+const ESCALAS = {
+  posicion: {et:"la de la posición", desc:"El modo que da la posición elegida"},
+  pentmen:  {et:"pentatónica menor", iv:[0,3,5,7,10],   st:[0,2,3,4,6]},
+  blues:    {et:"blues",             iv:[0,3,5,6,7,10], st:[0,2,3,3,4,6]},
+  mayor:    {et:"mayor",             iv:[0,2,4,5,7,9,11], st:[0,1,2,3,4,5,6]}
+};
+
+let arm = 0, pos = 1, esc = "posicion", verTodo = false;
+const tonalidadDe = () => (arm + 7 * (POSICIONES[pos].n - 1)) % 12;
+
+/* Todas las notas alcanzables: soplada, aspirada y cada bend. */
+function notas(){
+  const t = arm, out = [];
+  for (let h = 0; h < 10; h++){
+    const s = SOPLA_DO[h] + t, a = ASPIRA_DO[h] + t;
+    out.push({h, tipo:"sopla", midi:s, bend:0});
+    out.push({h, tipo:"aspira", midi:a, bend:0});
+    const b = bendsDe(h);
+    for (let k = 1; k <= b.n; k++){
+      const base = b.dir === "aspira" ? a : s;
+      out.push({h, tipo:b.dir, midi:base - k, bend:k});
+    }
+  }
+  return out;
+}
+function escalaActual(){
+  const ton = tonalidadDe();
+  const rl = RAICES.find(r => r[2] === ton)[1];
+  const e = esc === "posicion" ? MODOS[POSICIONES[pos].modo] : ESCALAS[esc];
+  const m = new Map();
+  e.iv.forEach((iv, k) => m.set((ton + iv) % 12,
+    {grado:k, nom:deletrear(rl, ton, iv, e.st[k]), tonica:iv === 0}));
+  return m;
+}
+
+/* ═══ Audio: lengüeta libre ═══════════════════════════════════════
+   Espectro rico en armónicos con las impares algo marcadas, ataque de aire
+   y un vibrato leve. Aspirar suena un poco más áspero que soplar, que es lo
+   que pasa en el instrumento. */
+let ctx = null, master = null, bufR = null;
+function audio(){
+  if (!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = .38;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 7000;
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -8; lim.knee.value = 4; lim.ratio.value = 12;
+    lim.attack.value = .004; lim.release.value = .2;
+    master.connect(lp).connect(lim).connect(ctx.destination);
+  }
+  if (ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+function ruido(c){
+  if (!bufR){
+    bufR = c.createBuffer(1, Math.floor(c.sampleRate * .3), c.sampleRate);
+    const d = bufR.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return bufR;
+}
+function sonar(midi, cuando, dur, tipo, esBend){
+  const c = audio(), f = 440 * Math.pow(2, (midi - 69) / 12);
+  const aspira = tipo === "aspira";
+  const parciales = [[1,1],[2,aspira?.52:.42],[3,aspira?.40:.28],[4,.20],[5,aspira?.22:.13],
+                     [6,.10],[7,aspira?.12:.06],[8,.05]];
+  const vib = c.createOscillator(), vg = c.createGain();
+  vib.type = "sine"; vib.frequency.value = 5.4;
+  vg.gain.value = f * .0035;
+  vib.connect(vg); vib.start(cuando); vib.stop(cuando + dur + .1);
+  for (const [n, amp] of parciales){
+    if (f * n > 9500) break;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine"; o.frequency.value = f * n;
+    vg.connect(o.frequency);
+    const pico = .16 * amp * (esBend ? .85 : 1);
+    g.gain.setValueAtTime(.0001, cuando);
+    g.gain.exponentialRampToValueAtTime(pico, cuando + (esBend ? .045 : .022));
+    g.gain.setValueAtTime(pico, cuando + dur * .7);
+    g.gain.exponentialRampToValueAtTime(.0001, cuando + dur);
+    o.connect(g).connect(master);
+    o.start(cuando); o.stop(cuando + dur + .05);
+  }
+  // soplo de aire en el ataque
+  const s = c.createBufferSource(), fl = c.createBiquadFilter(), gn = c.createGain();
+  s.buffer = ruido(c);
+  fl.type = "bandpass"; fl.frequency.value = f * 2.5; fl.Q.value = .8;
+  gn.gain.setValueAtTime(.05, cuando);
+  gn.gain.exponentialRampToValueAtTime(.0001, cuando + .07);
+  s.connect(fl).connect(gn).connect(master);
+  s.start(cuando); s.stop(cuando + .1);
+}
+
+/* ═══ Mapa ════════════════════════════════════════════════════════ */
+function tabDe(n){
+  const flechas = n.tipo === "sopla" ? "+" : "-";
+  return flechas + (n.h + 1) + (n.bend ? "'".repeat(n.bend) : "");
+}
+function pintar(){
+  const t = arm, P = POSICIONES[pos], ton = tonalidadDe();
+  const tonNom = RAICES.find(r => r[2] === ton)[0];
+  const armNom = RAICES[arm][0];
+  const ee = escalaActual();
+  const todas = notas();
+
+  document.getElementById("a-nom").textContent = "Armónica en " + armNom + " · " + P.et + " posición";
+  document.getElementById("a-sub").textContent = "suena en " + tonNom +
+    (esc === "posicion" ? " " + P.modo : " · escala " + ESCALAS[esc].et);
+  document.getElementById("a-aviso").textContent = P.desc +
+    (P.n === 1 ? "" : "  Con una armónica en " + armNom + " tocás en " + tonNom + ": ese es todo el truco de las posiciones.");
+
+  const maxB = Math.max(...[...Array(10).keys()].map(h => bendsDe(h).n));
+  let h = "<tr class='num'><td></td>";
+  for (let i = 0; i < 10; i++) h += "<td>" + (i+1) + "</td>";
+  h += "</tr>";
+
+  const filas = [];
+  for (let k = maxB; k >= 1; k--) filas.push({tipo:"sopla", bend:k, et:"Soplar " + "'".repeat(k)});
+  filas.push({tipo:"sopla", bend:0, et:"Soplar"});
+  filas.push({tipo:"aspira", bend:0, et:"Aspirar"});
+  for (let k = 1; k <= maxB; k++) filas.push({tipo:"aspira", bend:k, et:"Aspirar " + "'".repeat(k)});
+
+  for (const f of filas){
+    const hay = todas.some(n => n.tipo === f.tipo && n.bend === f.bend);
+    if (!hay) continue;
+    h += "<tr><th>" + f.et + "</th>";
+    for (let i = 0; i < 10; i++){
+      const n = todas.find(x => x.h === i && x.tipo === f.tipo && x.bend === f.bend);
+      if (!n){ h += "<td class='h fuera'></td>"; continue; }
+      const d = ee.get(n.midi % 12);
+      const cls = ["h"];
+      if (d || verTodo) cls.push("on", n.bend ? "bend" : f.tipo);
+      else cls.push("fuera");
+      if (d && d.tonica) cls.push("tonica");
+      h += "<td class='" + cls.join(" ") + "' data-h='" + i + "' data-t='" + f.tipo +
+           "' data-b='" + f.bend + "' data-m='" + n.midi + "'><b>" +
+           (d ? d.nom : CROM[n.midi % 12]) + "</b><span>" + tabDe(n) + "</span></td>";
+    }
+    h += "</tr>";
+  }
+  // que los botones sigan al estado, y no dependan de quién llamó a pintar
+  document.querySelectorAll("#armonicas .op").forEach((b,i) => b.setAttribute("aria-pressed", i === arm));
+  document.querySelectorAll("#posiciones .op").forEach((b,i) => b.setAttribute("aria-pressed", i === pos));
+  const claves = Object.keys(ESCALAS);
+  document.querySelectorAll("#escalas .op").forEach((b,i) => b.setAttribute("aria-pressed", claves[i] === esc));
+  document.getElementById("mapa").innerHTML = h;
+  document.querySelectorAll("#mapa td.h[data-m]").forEach(td => {
+    td.onclick = () => {
+      const c = audio();
+      sonar(+td.dataset.m, c.currentTime + .02, 1.1, td.dataset.t, +td.dataset.b > 0);
+      td.classList.add("activa");
+      setTimeout(() => td.classList.remove("activa"), 160);
+    };
+  });
+
+  // la escala, tocada de grave a agudo con la digitación más simple
+  const R = secuenciaEscala(), sec = R.sec;
+  const anchos = sec.map(n => Math.max(tabDe(n).length, ee.get(n.midi % 12).nom.length));
+  let tab = "Escala de " + tonNom + ", de grave a agudo:\n\n  " +
+    sec.map((n,i) => tabDe(n).padEnd(anchos[i])).join("   ") + "\n  " +
+    sec.map((n,i) => ee.get(n.midi % 12).nom.padEnd(anchos[i])).join("   ");
+  if (R.faltan.length){
+    const rl = RAICES.find(r => r[2] === ton)[1];
+    const nombres = R.faltan.map(iv => {
+      const k = (esc === "posicion" ? MODOS[POSICIONES[pos].modo] : ESCALAS[esc]).iv.indexOf(iv);
+      return k < 0 ? CROM[(ton + iv) % 12] : ee.get((ton + iv) % 12).nom;
+    });
+    tab += "\n\n  Esta armónica no tiene " + nombres.join(" ni ") +
+           " en esa octava: son las notas que la disposición deja afuera.";
+  }
+  document.getElementById("a-tab").textContent = tab;
+
+  const conBend = sec.filter(n => n.bend).length;
+  const disponibles = todas.filter(n => ee.has(n.midi % 12));
+  document.getElementById("a-metricas").innerHTML =
+    "<span>Notas de la escala alcanzables <b>" + disponibles.length + "</b></span>" +
+    "<span>De ellas, con bend <b>" + disponibles.filter(n=>n.bend).length + "</b></span>" +
+    "<span>La escala de una octava necesita <b>" + conBend + " bend" + (conBend===1?"":"s") + "</b></span>" +
+    "<span>Agujeros que doblan <b>" + [...Array(10).keys()].filter(h=>bendsDe(h).n).length + " de 10</b></span>";
+  document.getElementById("a-info").textContent =
+    conBend === 0 ? "Esta escala sale sin doblar ninguna nota" :
+    conBend + " nota" + (conBend===1?"":"s") + " de la escala necesita" + (conBend===1?"":"n") + " bend";
+}
+
+/* Una octava de la escala, eligiendo para cada grado la opción más fácil:
+   sin bend antes que con bend, y el bend más chico antes que el más grande. */
+function secuenciaEscala(){
+  const ton = tonalidadDe(), todas = notas();
+  const e = esc === "posicion" ? MODOS[POSICIONES[pos].modo] : ESCALAS[esc];
+  const raices = todas.filter(n => n.midi % 12 === ton && !n.bend)
+                      .sort((a,b) => a.midi - b.midi);
+  if (!raices.length) return {sec:[], faltan:e.iv.length + 1, desde:null};
+  /* Probar cada octava y quedarse con la más completa. Antes arrancaba en la
+     primera tónica y descartaba en silencio los grados que no conseguía ahí;
+     justamente lo que la app tiene que mostrar. */
+  let mejor = null;
+  for (const r of raices){
+    const sec = [], faltan = [];
+    for (const iv of e.iv.concat([12])){
+      const cand = todas.filter(n => n.midi === r.midi + iv).sort((a,b) => a.bend - b.bend);
+      if (cand.length) sec.push(cand[0]); else faltan.push(iv);
+    }
+    if (!mejor || faltan.length < mejor.faltan.length ||
+        (faltan.length === mejor.faltan.length && r.midi < mejor.desde.midi))
+      mejor = {sec, faltan, desde:r};
+  }
+  return mejor;
+}
+function tocarEscala(){
+  const sec = secuenciaEscala().sec;
+  const c = audio(), t0 = c.currentTime + .06;
+  sec.forEach((n, i) => sonar(n.midi, t0 + i * .34, .42, n.tipo, n.bend > 0));
+}
+
+/* ═══ Buscador inverso ════════════════════════════════════════════ */
+function pintarBuscador(sel){
+  const cont = document.getElementById("buscar");
+  if (!cont.children.length){
+    RAICES.forEach(([n], i) => {
+      const b = document.createElement("button");
+      b.className = "op"; b.textContent = n;
+      b.setAttribute("aria-pressed", i === sel);
+      b.onclick = () => {
+        cont.querySelectorAll(".op").forEach((x,j) => x.setAttribute("aria-pressed", j === i));
+        resolver(i);
+      };
+      cont.appendChild(b);
+    });
+  }
+  resolver(sel);
+}
+function resolver(tonObjetivo){
+  /* Invierte la cuenta de las posiciones: si querés sonar en X con la posición N,
+     la armónica va N-1 quintas por debajo. */
+  const filas = POSICIONES.map(P => {
+    const necesaria = ((tonObjetivo - 7 * (P.n - 1)) % 12 + 12) % 12;
+    return "<b>" + RAICES[necesaria][0] + "</b> en " + P.et + " posición · " + P.modo;
+  });
+  document.getElementById("buscar-r").innerHTML =
+    "Para tocar en <b>" + RAICES[tonObjetivo][0] + "</b>:<br>" + filas.join("<br>") +
+    "<br><span style='color:var(--tenue)'>Para blues, casi siempre la segunda: armónica en <b>" +
+    RAICES[((tonObjetivo - 7) % 12 + 12) % 12][0] + "</b>.</span>";
+}
+
+/* ═══ Arranque ════════════════════════════════════════════════════ */
+const fA = document.getElementById("armonicas");
+RAICES.forEach(([n], i) => {
+  const b = document.createElement("button");
+  b.className = "op"; b.textContent = n;
+  b.setAttribute("aria-pressed", i === arm);
+  b.onclick = () => {
+    arm = i;
+    fA.querySelectorAll(".op").forEach((x,j) => x.setAttribute("aria-pressed", j === i));
+    pintar();
+  };
+  fA.appendChild(b);
+});
+const fP = document.getElementById("posiciones");
+POSICIONES.forEach((P, i) => {
+  const b = document.createElement("button");
+  b.className = "op ancho";
+  b.innerHTML = P.et + " <small>" + P.nom + "</small>";
+  b.setAttribute("aria-pressed", i === pos);
+  b.onclick = () => {
+    pos = i;
+    fP.querySelectorAll(".op").forEach((x,j) => x.setAttribute("aria-pressed", j === i));
+    pintar();
+  };
+  fP.appendChild(b);
+});
+const fE = document.getElementById("escalas");
+Object.entries(ESCALAS).forEach(([k, v]) => {
+  const b = document.createElement("button");
+  b.className = "op ancho"; b.textContent = v.et;
+  b.setAttribute("aria-pressed", k === esc);
+  b.onclick = () => {
+    esc = k;
+    fE.querySelectorAll(".op").forEach(x => x.setAttribute("aria-pressed", false));
+    b.setAttribute("aria-pressed", true);
+    pintar();
+  };
+  fE.appendChild(b);
+});
+document.getElementById("tocar-escala").onclick = tocarEscala;
+document.getElementById("ver-todo").onclick = () => {
+  verTodo = !verTodo;
+  document.getElementById("ver-todo").textContent = verTodo ? "Sólo la escala" : "Ver todas las notas";
+  pintar();
+};
+pintar();
+pintarBuscador(7);
+</script>
+</body>
+</html>
