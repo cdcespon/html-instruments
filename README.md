@@ -8,7 +8,16 @@ Cada instrumento es un archivo HTML independiente: se abre directamente en cualq
 
 ---
 
-## 🚀 Aplicaciones Incluidas
+## 🚀 Enlaces Rápidos
+
+* 🌐 **[Probar Suite Online en vivo (GitHub Pages)](https://cdcespon.github.io/html-instruments/)**
+* 🌐 **[Preview alternativo (htmlpreview)](https://htmlpreview.github.io/?https://github.com/cdcespon/html-instruments/blob/main/index.html)**
+* 📥 **[Descargar Proyecto Completo (.ZIP)](https://github.com/cdcespon/html-instruments/archive/refs/heads/main.zip)**
+* 🎥 **[Ver Video de Demostración con Audio (`demo.mp4`)](demo.mp4)**
+
+---
+
+## 📱 Aplicaciones Incluidas
 
 | Aplicación | Archivo | Descripción Principal |
 | :--- | :--- | :--- |
