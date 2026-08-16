@@ -89,7 +89,7 @@ No requiere Node.js, servidores, ni instalación de paquetes:
 ## 👤 Autor
 
 Desarrollado por **Claudio Cespon**
-* 💼 [Perfil en LinkedIn](https://www.linkedin.com/in/TU-PERFIL)
+* 💼 [Perfil en LinkedIn](https://www.linkedin.com/in/claudio-cespon/)
 * 🐙 [GitHub: @cdcespon](https://github.com/cdcespon)
 
 ---
