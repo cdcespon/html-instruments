@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Batería — entender y practicar grooves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#131313; --panel:#1C1C1C; --panel-alto:#262626;
+  --metal:#5A5148; --metal-claro:#8A7C6B;
+  --crema:#E8E4DC; --texto:#C2BCB2; --tenue:#7E786F; --linea:#2E2E2E;
+  --mder:#4FB8A8;   /* mano derecha */
+  --mizq:#E8823A;   /* mano izquierda */
+  --pie:#C25A7A;    /* pie derecho */
+  --pulso:#3A3A3A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--fondo);color:var(--texto);
+  font-family:'IBM Plex Mono',ui-monospace,monospace;padding:24px 18px 44px}
+.marco{max-width:1080px;margin:0 auto}
+.cabecera{border-left:3px solid var(--metal-claro);padding-left:14px;margin-bottom:22px}
+h1{font-family:'Barlow Condensed',system-ui,sans-serif;font-size:30px;font-weight:600;color:var(--crema)}
+.cabecera p{font-size:12.5px;color:var(--tenue);margin-top:5px;line-height:1.6;max-width:76ch}
+.grupo{margin-bottom:13px}
+.etiqueta{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tenue);margin-bottom:7px}
+.fila{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.op{font-size:13px;background:var(--panel);color:var(--tenue);border:1px solid var(--linea);
+  border-radius:3px;padding:8px 12px;cursor:pointer;font-family:inherit;
+  transition:background .14s,color .14s,border-color .14s}
+.op:hover{background:var(--panel-alto);color:var(--texto)}
+.op[aria-pressed="true"]{background:var(--metal);color:var(--crema);border-color:var(--metal-claro)}
+.op:focus-visible{outline:2px solid var(--mder);outline-offset:2px}
+.op.ancho{font-family:'Barlow Condensed',sans-serif;font-size:15px;padding:8px 15px}
+.panel{background:var(--panel);border:1px solid var(--linea);border-top:3px solid var(--metal);
+  border-radius:4px;padding:20px 18px 18px;margin-top:18px}
+.titulo{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;margin-bottom:5px}
+.titulo strong{font-family:'Barlow Condensed',sans-serif;font-size:27px;font-weight:600;color:var(--crema)}
+.titulo em{font-style:normal;font-size:12px;color:var(--tenue)}
+.aviso{font-size:12.5px;line-height:1.7;color:var(--tenue);margin:11px 0 17px;max-width:76ch;
+  border-left:2px solid var(--metal);padding-left:11px}
+.rejilla{overflow-x:auto;padding-bottom:6px}
+table.gr{border-collapse:separate;border-spacing:3px;min-width:640px}
+table.gr th{font-weight:400;font-size:11.5px;color:var(--tenue);text-align:right;
+  padding-right:9px;white-space:nowrap}
+table.gr th button{background:none;border:none;color:inherit;font:inherit;cursor:pointer;
+  padding:2px 0;border-bottom:1px dashed transparent}
+table.gr th button:hover{color:var(--crema);border-bottom-color:var(--metal-claro)}
+table.gr th.apagada{opacity:.35;text-decoration:line-through}
+td.c{width:34px;height:30px;border-radius:3px;background:#1F1F1F;border:1px solid #262626;
+  cursor:pointer;position:relative;transition:transform .05s}
+td.c.pulso{background:#242424}
+td.c.on{border-color:transparent}
+td.c.on.d{background:var(--mder)} td.c.on.i{background:var(--mizq)} td.c.on.p{background:var(--pie)}
+td.c.fantasma{opacity:.42}
+td.c.ahora{outline:2px solid var(--crema);outline-offset:1px}
+td.c.mudo{opacity:.16}
+tr.cuenta td{font-size:10.5px;color:var(--tenue);text-align:center;padding-bottom:3px;
+  background:none;border:none;height:auto}
+tr.cuenta td.fuerte{color:var(--crema)}
+.controles{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+.btn{font-family:'Barlow Condensed',sans-serif;font-size:15px;background:var(--panel-alto);
+  color:var(--crema);border:1px solid var(--linea);border-radius:3px;padding:9px 16px;cursor:pointer}
+.btn:hover{background:var(--metal);border-color:var(--metal-claro)}
+.btn:focus-visible{outline:2px solid var(--mder);outline-offset:2px}
+.btn.principal{background:var(--metal);border-color:var(--metal-claro)}
+.btn.chico{padding:3px 10px;font-size:16px;min-width:32px;line-height:1.1}
+.sep{width:1px;height:26px;background:var(--linea);margin:0 4px}
+.reglas{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:13px;font-size:12px;color:var(--tenue)}
+.reglas input[type=range]{width:150px;accent-color:var(--metal-claro)}
+.pasos{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.paso{background:var(--panel-alto);border:1px solid var(--linea);border-radius:3px;
+  padding:8px 12px;cursor:pointer;font-size:12px;color:var(--tenue);text-align:left;line-height:1.45}
+.paso:hover{background:var(--metal);color:var(--crema)}
+.paso[aria-pressed="true"]{background:var(--metal);border-color:var(--metal-claro);color:var(--crema)}
+.paso b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:14px}
+.paso span{display:block;font-size:10.5px;opacity:.85;margin-top:1px}
+.leyenda{display:flex;gap:17px;flex-wrap:wrap;margin-top:14px;padding-top:13px;
+  border-top:1px solid var(--linea);font-size:11.5px;color:var(--tenue)}
+.leyenda i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.firma{max-width:1080px;margin:34px auto 0;padding-top:16px;border-top:1px solid var(--linea);
+  font-size:11.5px;line-height:1.7;color:var(--tenue)}
+.firma b{color:var(--texto);font-weight:400}
+.firma a{color:var(--mder);text-decoration:none}
+@media (max-width:640px){h1{font-size:24px} td.c{width:26px;height:26px}}
+</style>
+</head>
+<body>
+<div class="marco">
+  <div class="cabecera">
+    <h1>Batería — entender y practicar grooves</h1>
+    <p>Cada fila es una parte de la batería y cada columna un golpe posible. El color dice qué extremidad lo toca. Nadie aprende un groove entero de una vez: empezá por el bombo solo y andá sumando capas.</p>
+  </div>
+
+  <div class="grupo">
+    <div class="etiqueta">Groove</div>
+    <div class="fila" id="grooves"></div>
+  </div>
+
+  <div class="panel">
+    <div class="titulo"><strong id="g-nom"></strong><em id="g-sub"></em></div>
+    <div class="aviso" id="g-aviso"></div>
+
+    <div class="etiqueta">Practicá por capas — tocá cada paso hasta que salga solo</div>
+    <div class="pasos" id="g-pasos"></div>
+
+    <div class="rejilla" style="margin-top:16px"><table class="gr" id="grilla"></table></div>
+
+    <div class="controles">
+      <button class="btn principal" id="play">Tocar</button>
+      <span id="pos" style="font-size:12px;color:var(--mder);min-width:150px"></span>
+      <div class="sep"></div>
+      <button class="btn" id="limpiar">Vaciar</button>
+      <button class="btn" id="reset">Restaurar</button>
+    </div>
+    <div class="reglas">
+      <label>Tempo
+        <button class="btn chico" id="t-m">−</button>
+        <input type="range" id="tempo" min="40" max="200" value="80" step="1">
+        <button class="btn chico" id="t-p">+</button>
+        <span id="tempo-n" style="color:var(--crema)">80</span> bpm</label>
+      <label><input type="checkbox" id="claqueta"> Claqueta en negras</label>
+    </div>
+
+    <div class="leyenda">
+      <span><i style="background:var(--mder)"></i>Mano derecha</span>
+      <span><i style="background:var(--mizq)"></i>Mano izquierda</span>
+      <span><i style="background:var(--pie)"></i>Pie derecho</span>
+      <span><i style="background:var(--mder);opacity:.42"></i>Golpe flojo (nota fantasma)</span>
+      <span>Hacé clic en cualquier casilla para cambiarla</span>
+    </div>
+  </div>
+</div>
+
+<div class="firma">
+  Desarrollado por <b>Claudio Cespon</b>, con Claude Opus 5 ·
+  <a href="https://www.linkedin.com/in/claudio-cespon/" target="_blank" rel="noopener">LinkedIn</a>
+</div>
+
+<script>
+/* ═══ Piezas ══════════════════════════════════════════════════════
+   mano: d = derecha, i = izquierda, p = pie. En principiantes esto importa
+   tanto como el ritmo: saber con qué extremidad va cada golpe es la mitad
+   del problema. */
+const PIEZAS = [
+  {id:"cr", et:"Platillo",   mano:"d"},
+  {id:"hh", et:"Hi-hat",     mano:"d"},
+  {id:"ho", et:"Hi-hat abierto", mano:"d"},
+  {id:"sn", et:"Redoblante", mano:"i"},
+  {id:"tm", et:"Tom",        mano:"i"},
+  {id:"bd", et:"Bombo",      mano:"p"}
+];
+
+/* Valores por casilla: 0 nada · 1 golpe flojo · 2 golpe normal */
+const GROOVES = {
+  rock8: {
+    et:"Rock de corcheas", pasos:16, tempo:80, tresillo:false,
+    sub:"El groove que aparece en la mitad de las canciones que conocés",
+    aviso:"El bombo en 1 y 3, el redoblante en 2 y 4, y el hi-hat marcando corcheas parejas. Todo lo demás es una variación de esto. El redoblante en 2 y 4 es el backbeat: es lo que hace que el cuerpo marque el pulso.",
+    p:{hh:[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2].map((v,i)=>i%2?v:v),
+       sn:[0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0],
+       bd:[2,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0]},
+    capas:[["bd"],["bd","sn"],["bd","sn","hh"]]
+  },
+  rock16: {
+    et:"Rock de semicorcheas", pasos:16, tempo:70, tresillo:false,
+    sub:"Mismo esqueleto, hi-hat al doble",
+    aviso:"Idéntico al anterior en bombo y redoblante: lo único que cambia es que la mano derecha va al doble de velocidad. Practicá primero el hi-hat solo hasta que sea parejo, y recién ahí agregá el resto.",
+    p:{hh:[2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1],
+       sn:[0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0],
+       bd:[2,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0]},
+    capas:[["bd"],["bd","sn"],["hh"],["bd","sn","hh"]]
+  },
+  balada: {
+    et:"Balada", pasos:16, tempo:64, tresillo:false,
+    sub:"Lento, con aire entre los golpes",
+    aviso:"Pocos golpes y mucho silencio. Es el groove más difícil de tocar bien justamente por eso: no hay nada que tape los errores de tiempo. Si te apurás, se nota enseguida.",
+    p:{hh:[2,0,2,0,2,0,2,0,2,0,2,0,2,0,2,0],
+       sn:[0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0],
+       bd:[2,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0]},
+    capas:[["bd","sn"],["bd","sn","hh"]]
+  },
+  shuffle: {
+    et:"Shuffle de blues", pasos:12, tempo:88, tresillo:true,
+    sub:"Sensación de tresillo, no de corcheas",
+    aviso:"El compás se divide en tresillos y no en corcheas: cada pulso son tres partes y el hi-hat toca la primera y la tercera. Ese hueco del medio es todo el shuffle. Contá «un-dos-tres, dos-dos-tres» mientras lo escuchás.",
+    p:{hh:[2,0,2,2,0,2,2,0,2,2,0,2],
+       sn:[0,0,0,2,0,0,0,0,0,2,0,0],
+       bd:[2,0,0,0,0,0,2,0,0,0,0,0]},
+    capas:[["hh"],["bd","sn"],["bd","sn","hh"]]
+  },
+  funk: {
+    et:"Funk con fantasmas", pasos:16, tempo:92, tresillo:false,
+    sub:"Los golpes flojos son la mitad del asunto",
+    aviso:"Las casillas más tenues son notas fantasma: golpes muy suaves del redoblante entre los fuertes. Casi no se oyen sueltas, pero sin ellas el groove queda cuadrado. Practicá primero sólo los golpes fuertes.",
+    p:{hh:[2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1],
+       sn:[0,1,0,0,2,0,1,1,0,1,0,0,2,0,1,0],
+       bd:[2,0,0,1,0,0,2,0,0,0,2,0,0,1,0,0]},
+    capas:[["bd"],["bd","sn"],["bd","sn","hh"]]
+  },
+  reggae: {
+    et:"Reggae · one drop", pasos:16, tempo:74, tresillo:false,
+    sub:"El 1 vacío",
+    aviso:"Lo raro y lo bueno: en el tiempo 1 no hay bombo. El peso cae en el 3, donde bombo y redoblante suenan juntos. Si venís del rock te va a costar, porque la costumbre es apoyar en el 1.",
+    p:{hh:[0,0,2,0,0,0,2,0,0,0,2,0,0,0,2,0],
+       sn:[0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0],
+       bd:[0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0]},
+    capas:[["bd","sn"],["bd","sn","hh"]]
+  },
+  bossa: {
+    et:"Bossa nova", pasos:16, tempo:120, tresillo:false,
+    sub:"Con escobillas, en la práctica",
+    aviso:"El redoblante hace un patrón que se corre respecto del pulso y no se repite igual en los dos compases. Acá está el primer compás. Es el groove donde más se nota si contás mal.",
+    p:{hh:[2,0,2,0,2,0,2,0,2,0,2,0,2,0,2,0],
+       sn:[2,0,0,2,0,0,2,0,0,0,2,0,0,2,0,0],
+       bd:[2,0,0,2,0,0,2,0,2,0,0,2,0,0,2,0]},
+    capas:[["bd"],["sn"],["bd","sn"],["bd","sn","hh"]]
+  }
+};
+
+let groove = "rock8", patron = null, pasos = 16, tresillo = false;
+let capa = -1, tempo = 80, tocando = false, cursor = -1;
+let ctx = null, master = null, timer = null, raf = null;
+let t0 = 0, idx = 0;
+
+function clonar(g){
+  const p = {};
+  for (const pz of PIEZAS) p[pz.id] = (GROOVES[g].p[pz.id] || new Array(GROOVES[g].pasos).fill(0)).slice();
+  return p;
+}
+
+/* ═══ Síntesis ════════════════════════════════════════════════════
+   Cada pieza con la técnica que le corresponde: el bombo es un seno cuya
+   frecuencia se desploma, el redoblante es ruido más dos senos, los metales
+   son ruido filtrado. Es síntesis tipo caja de ritmos, y para percusión
+   suena mucho más creíble que para instrumentos afinados. */
+let bufRuido = null;
+function audio(){
+  if (!ctx){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = .55;
+    const lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -7; lim.knee.value = 5; lim.ratio.value = 12;
+    lim.attack.value = .002; lim.release.value = .15;
+    master.connect(lim).connect(ctx.destination);
+  }
+  if (ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+function ruido(c){
+  if (!bufRuido){
+    bufRuido = c.createBuffer(1, Math.floor(c.sampleRate * 1.2), c.sampleRate);
+    const d = bufRuido.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return bufRuido;
+}
+function fuenteRuido(c, cuando, dur, tipo, frec, q, vol){
+  const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = ruido(c); s.loop = true;
+  f.type = tipo; f.frequency.value = frec; if (q) f.Q.value = q;
+  g.gain.setValueAtTime(vol, cuando);
+  g.gain.exponentialRampToValueAtTime(.0001, cuando + dur);
+  s.connect(f).connect(g).connect(master);
+  s.start(cuando); s.stop(cuando + dur + .02);
+}
+function golpe(id, cuando, v){
+  const c = audio(), vol = v === 1 ? .28 : 1;
+  if (id === "bd"){
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(125, cuando);
+    o.frequency.exponentialRampToValueAtTime(44, cuando + .09);
+    g.gain.setValueAtTime(.9 * vol, cuando);
+    g.gain.exponentialRampToValueAtTime(.0001, cuando + .42);
+    o.connect(g).connect(master);
+    o.start(cuando); o.stop(cuando + .45);
+    fuenteRuido(c, cuando, .02, "lowpass", 2200, 1, .25 * vol);
+  } else if (id === "sn"){
+    for (const [f, a] of [[188, .30], [332, .18]]){
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = "triangle"; o.frequency.value = f;
+      g.gain.setValueAtTime(a * vol, cuando);
+      g.gain.exponentialRampToValueAtTime(.0001, cuando + .13);
+      o.connect(g).connect(master);
+      o.start(cuando); o.stop(cuando + .16);
+    }
+    fuenteRuido(c, cuando, v === 1 ? .07 : .19, "highpass", 1400, .7, .55 * vol);
+  } else if (id === "hh"){
+    fuenteRuido(c, cuando, .045, "highpass", 7800, 1.2, .30 * vol);
+  } else if (id === "ho"){
+    fuenteRuido(c, cuando, .34, "highpass", 7200, 1.0, .26 * vol);
+  } else if (id === "cr"){
+    fuenteRuido(c, cuando, 1.5, "highpass", 4600, .5, .32 * vol);
+  } else if (id === "tm"){
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(210, cuando);
+    o.frequency.exponentialRampToValueAtTime(105, cuando + .22);
+    g.gain.setValueAtTime(.6 * vol, cuando);
+    g.gain.exponentialRampToValueAtTime(.0001, cuando + .34);
+    o.connect(g).connect(master);
+    o.start(cuando); o.stop(cuando + .36);
+    fuenteRuido(c, cuando, .04, "bandpass", 900, 1.4, .12 * vol);
+  } else if (id === "cl"){
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = "square"; o.frequency.value = 1600;
+    g.gain.setValueAtTime(.14, cuando);
+    g.gain.exponentialRampToValueAtTime(.0001, cuando + .03);
+    o.connect(g).connect(master);
+    o.start(cuando); o.stop(cuando + .04);
+  }
+}
+
+/* ═══ Reproducción ════════════════════════════════════════════════
+   Planificador con anticipación: un temporizador cada 25 ms agenda lo que
+   entra en los próximos 200 ms. El cursor visual lee el reloj del audio en
+   cada cuadro, no un temporizador aparte, para que no se desfase. */
+function durPaso(){
+  const porPulso = tresillo ? 3 : 4;
+  return 60 / tempo / porPulso;
+}
+function activa(id){
+  if (capa < 0) return true;
+  return GROOVES[groove].capas[capa].includes(id);
+}
+function agendar(){
+  if (!tocando) return;
+  const c = audio(), dp = durPaso(), horizonte = c.currentTime + .2;
+  while (t0 + idx * dp < horizonte){
+    const cuando = t0 + idx * dp, k = idx % pasos;
+    for (const pz of PIEZAS){
+      const v = patron[pz.id][k];
+      if (v && activa(pz.id)) golpe(pz.id, cuando, v);
+    }
+    if (document.getElementById("claqueta").checked && k % (tresillo ? 3 : 4) === 0)
+      golpe("cl", cuando, 2);
+    idx++;
+  }
+}
+function pintarCursor(){
+  if (!tocando) return;
+  const dp = durPaso();
+  const k = Math.max(0, Math.floor((audio().currentTime - t0) / dp)) % pasos;
+  if (k !== cursor){
+    cursor = k;
+    document.querySelectorAll("td.c").forEach(td => td.classList.remove("ahora"));
+    document.querySelectorAll('td.c[data-k="' + k + '"]').forEach(td => td.classList.add("ahora"));
+    const porPulso = tresillo ? 3 : 4;
+    document.getElementById("pos").textContent =
+      "tiempo " + (Math.floor(k / porPulso) + 1) + " · parte " + (k % porPulso + 1);
+  }
+  raf = requestAnimationFrame(pintarCursor);
+}
+function tocar(){
+  if (tocando){ parar(); return; }
+  const c = audio();
+  tocando = true; idx = 0; cursor = -1;
+  t0 = c.currentTime + .08;
+  document.getElementById("play").textContent = "Parar";
+  timer = setInterval(agendar, 25);
+  agendar();
+  raf = requestAnimationFrame(pintarCursor);
+}
+function parar(){
+  tocando = false;
+  clearInterval(timer); cancelAnimationFrame(raf);
+  document.querySelectorAll("td.c").forEach(td => td.classList.remove("ahora"));
+  document.getElementById("play").textContent = "Tocar";
+  document.getElementById("pos").textContent = "";
+}
+
+/* ═══ Interfaz ════════════════════════════════════════════════════ */
+const NOMBRES16 = ["1","e","y","a","2","e","y","a","3","e","y","a","4","e","y","a"];
+const NOMBRES12 = ["1","tri","le","2","tri","le","3","tri","le","4","tri","le"];
+function pintarGrilla(){
+  const t = document.getElementById("grilla");
+  const nom = tresillo ? NOMBRES12 : NOMBRES16;
+  const porPulso = tresillo ? 3 : 4;
+  let h = "<tr class='cuenta'><td></td>";
+  for (let k = 0; k < pasos; k++)
+    h += "<td class='" + (k % porPulso === 0 ? "fuerte" : "") + "'>" + nom[k] + "</td>";
+  h += "</tr>";
+  for (const pz of PIEZAS){
+    /* Todas las filas siempre visibles: las vacías son donde el usuario puede
+       agregar un platillo o un tom. Esconderlas según el modo sólo confunde. */
+    const off = !activa(pz.id);
+    h += "<tr><th class='" + (off ? "apagada" : "") + "'><button data-pieza='" + pz.id + "'>" + pz.et + "</button></th>";
+    for (let k = 0; k < pasos; k++){
+      const v = patron[pz.id][k];
+      const cls = ["c"];
+      if (k % porPulso === 0) cls.push("pulso");
+      if (v) { cls.push("on", pz.mano); if (v === 1) cls.push("fantasma"); }
+      if (off) cls.push("mudo");
+      h += "<td class='" + cls.join(" ") + "' data-p='" + pz.id + "' data-k='" + k + "'></td>";
+    }
+    h += "</tr>";
+  }
+  t.innerHTML = h;
+  t.querySelectorAll("td.c").forEach(td => {
+    td.onclick = () => {
+      const p = td.dataset.p, k = +td.dataset.k;
+      patron[p][k] = (patron[p][k] + 1) % 3;   // nada → flojo → normal
+      pintarGrilla();
+      if (patron[p][k]) golpe(p, audio().currentTime + .01, patron[p][k]);
+    };
+  });
+  t.querySelectorAll("th button").forEach(b => {
+    b.onclick = () => {
+      const id = b.dataset.pieza;
+      if (capa < 0){ capa = 0; }
+      const c = GROOVES[groove].capas[capa].slice();
+      const i = c.indexOf(id);
+      if (i < 0) c.push(id); else c.splice(i, 1);
+      GROOVES[groove].capas[capa] = c;
+      pintarPasos(); pintarGrilla();
+    };
+  });
+}
+function pintarPasos(){
+  const cont = document.getElementById("g-pasos");
+  cont.innerHTML = "";
+  const g = GROOVES[groove];
+  g.capas.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.className = "paso";
+    b.setAttribute("aria-pressed", capa === i);
+    b.innerHTML = "<b>Paso " + (i+1) + "</b><span>" +
+      c.map(id => PIEZAS.find(p => p.id === id).et).join(" + ") + "</span>";
+    b.onclick = () => { capa = i; pintarPasos(); pintarGrilla(); };
+    cont.appendChild(b);
+  });
+  const b = document.createElement("button");
+  b.className = "paso";
+  b.setAttribute("aria-pressed", capa < 0);
+  b.innerHTML = "<b>Completo</b><span>todas las partes juntas</span>";
+  b.onclick = () => { capa = -1; pintarPasos(); pintarGrilla(); };
+  cont.appendChild(b);
+}
+function cargar(g){
+  parar();
+  groove = g;
+  const G = GROOVES[g];
+  pasos = G.pasos; tresillo = G.tresillo;
+  patron = clonar(g);
+  capa = 0;
+  setTempo(G.tempo);
+  document.getElementById("g-nom").textContent = G.et;
+  document.getElementById("g-sub").textContent = G.sub;
+  document.getElementById("g-aviso").textContent = G.aviso;
+  // que el botón siga al estado, y no al revés
+  const claves = Object.keys(GROOVES);
+  document.querySelectorAll("#grooves .op").forEach((b, i) =>
+    b.setAttribute("aria-pressed", claves[i] === g));
+  pintarPasos(); pintarGrilla();
+}
+function setTempo(v){
+  tempo = Math.max(40, Math.min(200, Math.round(v)));
+  document.getElementById("tempo").value = tempo;
+  document.getElementById("tempo-n").textContent = tempo;
+}
+const filaG = document.getElementById("grooves");
+Object.entries(GROOVES).forEach(([k, v], i) => {
+  const b = document.createElement("button");
+  b.className = "op ancho"; b.textContent = v.et;
+  b.setAttribute("aria-pressed", i === 0);
+  b.onclick = () => cargar(k);
+  filaG.appendChild(b);
+});
+document.getElementById("play").onclick = tocar;
+document.getElementById("tempo").oninput = e => setTempo(+e.target.value);
+document.getElementById("t-m").onclick = () => setTempo(tempo - 1);
+document.getElementById("t-p").onclick = () => setTempo(tempo + 1);
+document.getElementById("limpiar").onclick = () => {
+  for (const pz of PIEZAS) patron[pz.id] = new Array(pasos).fill(0);
+  pintarGrilla();
+};
+document.getElementById("reset").onclick = () => cargar(groove);
+cargar("rock8");
+</script>
+</body>
+</html>
