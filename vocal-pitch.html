@@ -414,10 +414,9 @@ canvas#pitchCanvas{width:100%;height:100%;display:block}
             const t = THEMES[themeKey] || THEMES.cyan;
             state.themeKey = themeKey;
             state.currentTheme = t;
+            // Solo cambia el color de la traza (pitch); el badge siempre es naranja ámbar (CSS)
             document.documentElement.style.setProperty('--accent-cyan', t.primary);
             document.documentElement.style.setProperty('--accent-glow', t.glow);
-            document.documentElement.style.setProperty('--theme-badge', t.badge);
-            document.documentElement.style.setProperty('--theme-shadow', t.shadow);
             try {
                 localStorage.setItem('htmlvocalpitch_theme', themeKey);
             } catch (e) {}
@@ -426,7 +425,8 @@ canvas#pitchCanvas{width:100%;height:100%;display:block}
                 sel.value = themeKey;
             }
         }
-        applyTheme('cyan');
+        // Restaurar tema guardado; el badge siempre queda en el naranja de la suite
+        try { applyTheme(localStorage.getItem('htmlvocalpitch_theme') || 'cyan'); } catch(e) { applyTheme('cyan'); }
 
         const liveNoteEl = document.getElementById('liveNote');
         const liveOctaveEl = document.getElementById('liveOctave');
