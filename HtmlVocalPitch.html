@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>HtmlVocalPitch - Monitor Vocal de Afinación</title>
+    <style>
+        :root {
+            --bg-main: #0c0e12;
+            --bg-panel: #15181f;
+            --bg-card: #1e232d;
+            --accent-cyan: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.5);
+            --theme-badge: linear-gradient(135deg, #00b4d8, #0077b6);
+            --theme-shadow: rgba(0, 180, 216, 0.4);
+            --accent-green: #00e676;
+            --accent-yellow: #ffd600;
+            --accent-red: #ff3d00;
+            --text-primary: #f0f4f8;
+            --text-secondary: #8892b0;
+            --border-color: #262c37;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- Barra Superior (Header) --- */
+        header {
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-badge {
+            background: var(--theme-badge);
+            color: #fff;
+            font-weight: 900;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px var(--theme-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .app-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* --- Dashboard Central de Afinación --- */
+        .pitch-dashboard {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--bg-card);
+            padding: 4px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .current-note-box {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            min-width: 65px;
+        }
+
+        .note-text {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+            line-height: 1;
+        }
+
+        .octave-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .freq-readout {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            min-width: 75px;
+            text-align: right;
+        }
+
+        /* Medidor de Centésimas (Cents Meter) */
+        .cents-meter-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            min-width: 140px;
+        }
+
+        .cents-meter-bar {
+            width: 130px;
+            height: 10px;
+            background: #0f1217;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333a48;
+        }
+
+        .cents-needle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            margin-left: -2px;
+            background-color: var(--accent-green);
+            border-radius: 2px;
+            transition: left 0.08s ease-out, background-color 0.15s;
+            box-shadow: 0 0 6px var(--accent-green);
+        }
+
+        .cents-scale {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 9px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .cents-value {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        /* --- Botonera Principal --- */
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #282f3c;
+            border-color: #3e4859;
+        }
+
+        .btn.active {
+            background: #00b4d8;
+            color: #fff;
+            border-color: #00e5ff;
+            box-shadow: 0 0 12px rgba(0, 180, 216, 0.4);
+        }
+
+        .btn-mic {
+            background: #d90429;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            font-weight: 700;
+        }
+
+        .btn-mic.recording {
+            background: #00c853;
+            animation: pulse-mic 1.5s infinite;
+        }
+
+        @keyframes pulse-mic {
+            0% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 200, 83, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0); }
+        }
+
+        /* --- Barra de Herramientas Secundaria --- */
+        .toolbar {
+            background: #11141a;
+            border-bottom: 1px solid var(--border-color);
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        select, input[type="range"] {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            outline: none;
+        }
+
+        /* --- Espacio Principal (Piano Roll + Pitch Canvas) --- */
+        .main-workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Piano Roll Lateral */
+        .piano-sidebar {
+            width: 72px;
+            background: #0e1116;
+            border-right: 2px solid #262c37;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            flex-shrink: 0;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .piano-key {
+            width: 100%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding-left: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.1s;
+            border-bottom: 1px solid rgba(0,0,0,0.25);
+        }
+
+        .piano-key.white {
+            background: #dde4eb;
+            color: #1a1d24;
+            z-index: 1;
+        }
+
+        .piano-key.white:hover {
+            background: #ffffff;
+        }
+
+        .piano-key.white.active-playing {
+            background: var(--accent-cyan) !important;
+            color: #000 !important;
+        }
+
+        .piano-key.black {
+            background: #171a21;
+            color: #7a828d;
+            width: 60%;
+            z-index: 2;
+            border-left: 3px solid #000;
+            border-bottom: 1px solid #000;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .piano-key.black:hover {
+            background: #252a35;
+        }
+
+        .piano-key.black.active-playing {
+            background: var(--accent-cyan) !important;
+            color: #000 !important;
+        }
+
+        .piano-key.is-c {
+            border-top: 2px solid #00b4d8;
+        }
+
+        /* Lienzo Canvas */
+        .graph-viewport {
+            flex: 1;
+            position: relative;
+            background: #080a0d;
+            overflow: hidden;
+        }
+
+        canvas#pitchCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Overlay de Bienvenida / Selección */
+        .mic-prompt-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 12, 16, 0.88);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 20;
+            transition: opacity 0.3s;
+        }
+
+        .mic-prompt-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .prompt-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        .prompt-card h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--accent-cyan);
+        }
+
+        .prompt-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .btn-large {
+            padding: 12px 24px;
+            font-size: 14px;
+            border-radius: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CABECERA -->
+    <header>
+        <div class="header-title">
+            <a href="index.html" class="btn" title="Volver al portal de la Suite" style="padding: 5px 10px; font-size: 11px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12l-4-4 4-4"/></svg>
+                <span>Suite</span>
+            </a>
+            <span class="logo-badge">HVP</span>
+            <span class="app-name">HtmlVocalPitch</span>
+        </div>
+
+        <!-- DASHBOARD DE AFINACIÓN -->
+        <div class="pitch-dashboard">
+            <div class="current-note-box">
+                <span class="note-text" id="liveNote">--</span>
+                <span class="octave-text" id="liveOctave"></span>
+            </div>
+            <div class="freq-readout" id="liveFreq">0.0 Hz</div>
+            <div class="cents-meter-container">
+                <div class="cents-meter-bar">
+                    <div class="cents-needle" id="centsNeedle"></div>
+                </div>
+                <div class="cents-scale">
+                    <span>-50</span>
+                    <span class="cents-value" id="centsValue">0¢</span>
+                    <span>+50</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLES -->
+        <div class="controls-group">
+            <button class="btn btn-mic" id="btnToggleMic">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+                <span id="micLabel">Iniciar Micrófono</span>
+            </button>
+            <button class="btn" id="btnPause">
+                <span id="pauseLabel">Pausar</span>
+            </button>
+            <button class="btn" id="btnClear">Limpiar</button>
+            <button class="btn" id="btnDemo" title="Modo demo sin necesidad de micrófono">Simular Voz</button>
+            <button class="btn" id="btnAbout" title="Acerca de">ℹ️ Acerca de</button>
+        </div>
+    </header>
+
+    <!-- BARRA DE CONFIGURACIÓN -->
+    <div class="toolbar">
+        <div class="tool-item">
+            <label>Rango:</label>
+            <select id="octaveRangeSelect">
+                <option value="2-5">C2 - B5 (Estándar)</option>
+                <option value="3-6">C3 - B6 (Voces Agudas)</option>
+                <option value="1-4">C1 - B4 (Voces Graves)</option>
+                <option value="2-6">C2 - B6 (Completo)</option>
+            </select>
+        </div>
+
+        <div class="tool-item">
+            <label>Color / Tema:</label>
+            <select id="themeSelect">
+                <option value="cyan">Cyan Neón (Original)</option>
+                <option value="emerald">Esmeralda Neón</option>
+                <option value="purple">Púrpura Eléctrico</option>
+                <option value="amber">Ámbar Dorado</option>
+                <option value="coral">Coral / Rubí</option>
+                <option value="matrix">Verde Matrix</option>
+            </select>
+        </div>
+
+        <div class="tool-item">
+            <label>Umbral Ruido:</label>
+            <input type="range" id="sensitivitySlider" min="0.005" max="0.06" step="0.002" value="0.015">
+        </div>
+
+        <div class="tool-item">
+            <label>Notación:</label>
+            <select id="notationSelect">
+                <option value="english">C D E F G A B</option>
+                <option value="solfege">Do Re Mi Fa Sol La Si</option>
+            </select>
+        </div>
+
+        <div class="tool-item">
+            <label>Velocidad:</label>
+            <select id="speedSelect">
+                <option value="1.5">Normal (1.5x)</option>
+                <option value="1">Lento (1.0x)</option>
+                <option value="2.5">Rápido (2.5x)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ÁREA DE PIANO Y CANVAS -->
+    <div class="main-workspace">
+        <div class="piano-sidebar" id="pianoSidebar"></div>
+
+        <div class="graph-viewport">
+            <canvas id="pitchCanvas"></canvas>
+        </div>
+
+        <div class="mic-prompt-overlay" id="micPromptOverlay">
+            <div class="prompt-card">
+                <h2>HtmlVocalPitch</h2>
+                <p>Monitor de afinación vocal en tiempo real. Detección continua de frecuencia, afinador con centésimas, piano roll interactivo y trazado luminoso de tono.</p>
+                <button class="btn btn-mic btn-large" id="btnStartPrompt">
+                    Comenzar con Micrófono
+                </button>
+                <div style="margin-top: 14px;">
+                    <button class="btn" id="btnStartDemoPrompt" style="width: 100%; justify-content: center;">
+                        Probar con Modo Demostración
+                    </button>
+                </div>
+                <p style="margin-top: 16px; font-size: 13px; color: var(--text-secondary); text-align: center; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                    Desarrollado por <strong>Victoria Cespón</strong> y <strong>Claudio Cespón</strong> para estudiantes o entusiastas del arte de cantar.
+                </p>
+            </div>
+        </div>
+
+        <div class="mic-prompt-overlay hidden" id="aboutModal">
+            <div class="prompt-card" style="text-align: center;">
+                <h2 style="color: var(--accent-cyan);">Acerca de HtmlVocalPitch</h2>
+                <p style="margin: 18px 0; font-size: 16px; line-height: 1.6; color: var(--text-primary);">
+                    Desarrollado por <strong>Victoria Cespón</strong> y <strong>Claudio Cespón</strong> para estudiantes o entusiastas del arte de cantar.
+                </p>
+                <button class="btn btn-large" id="btnCloseAbout" style="width: 100%; justify-content: center;">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOTOR DE AUDIO DSP Y GRÁFICOS -->
+    <script>
+        const NOTE_NAMES_EN = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const NOTE_NAMES_ES = ['Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'];
+        const IS_BLACK_KEY = [false, true, false, true, false, false, true, false, true, false, true, false];
+
+        const state = {
+            audioContext: null,
+            analyser: null,
+            microphoneStream: null,
+            isRecording: false,
+            isPaused: false,
+            isDemoMode: false,
+            demoTime: 0,
+            noiseGateThreshold: 0.015,
+            scrollSpeed: 1.5,
+            notation: 'english',
+            minMidi: 36, // C2
+            maxMidi: 83, // B5
+            history: [],
+            maxHistoryPoints: 2000,
+            themeKey: 'cyan',
+            currentTheme: null
+        };
+
+        const THEMES = {
+            cyan: {
+                primary: '#00e5ff',
+                glow: 'rgba(0, 229, 255, 0.5)',
+                glowLine: 'rgba(0, 229, 255, 0.22)',
+                glowC: 'rgba(0, 229, 255, 0.28)',
+                cursor: 'rgba(0, 229, 255, 0.45)',
+                badge: 'linear-gradient(135deg, #00b4d8, #0077b6)',
+                shadow: 'rgba(0, 180, 216, 0.4)'
+            },
+            emerald: {
+                primary: '#00e676',
+                glow: 'rgba(0, 230, 118, 0.5)',
+                glowLine: 'rgba(0, 230, 118, 0.22)',
+                glowC: 'rgba(0, 230, 118, 0.28)',
+                cursor: 'rgba(0, 230, 118, 0.45)',
+                badge: 'linear-gradient(135deg, #00c853, #1b5e20)',
+                shadow: 'rgba(0, 200, 83, 0.4)'
+            },
+            purple: {
+                primary: '#e040fb',
+                glow: 'rgba(224, 64, 251, 0.5)',
+                glowLine: 'rgba(224, 64, 251, 0.22)',
+                glowC: 'rgba(224, 64, 251, 0.28)',
+                cursor: 'rgba(224, 64, 251, 0.45)',
+                badge: 'linear-gradient(135deg, #aa00ff, #4a148c)',
+                shadow: 'rgba(170, 0, 255, 0.4)'
+            },
+            amber: {
+                primary: '#ffd600',
+                glow: 'rgba(255, 214, 0, 0.5)',
+                glowLine: 'rgba(255, 214, 0, 0.22)',
+                glowC: 'rgba(255, 214, 0, 0.28)',
+                cursor: 'rgba(255, 214, 0, 0.45)',
+                badge: 'linear-gradient(135deg, #ffab00, #ff6d00)',
+                shadow: 'rgba(255, 171, 0, 0.4)'
+            },
+            coral: {
+                primary: '#ff3d00',
+                glow: 'rgba(255, 61, 0, 0.5)',
+                glowLine: 'rgba(255, 61, 0, 0.22)',
+                glowC: 'rgba(255, 61, 0, 0.28)',
+                cursor: 'rgba(255, 61, 0, 0.45)',
+                badge: 'linear-gradient(135deg, #f50057, #c51162)',
+                shadow: 'rgba(245, 0, 87, 0.4)'
+            },
+            matrix: {
+                primary: '#76ff03',
+                glow: 'rgba(118, 255, 3, 0.5)',
+                glowLine: 'rgba(118, 255, 3, 0.22)',
+                glowC: 'rgba(118, 255, 3, 0.28)',
+                cursor: 'rgba(118, 255, 3, 0.45)',
+                badge: 'linear-gradient(135deg, #64dd17, #33691e)',
+                shadow: 'rgba(100, 221, 23, 0.4)'
+            }
+        };
+
+        function applyTheme(themeKey) {
+            const t = THEMES[themeKey] || THEMES.cyan;
+            state.themeKey = themeKey;
+            state.currentTheme = t;
+            document.documentElement.style.setProperty('--accent-cyan', t.primary);
+            document.documentElement.style.setProperty('--accent-glow', t.glow);
+            document.documentElement.style.setProperty('--theme-badge', t.badge);
+            document.documentElement.style.setProperty('--theme-shadow', t.shadow);
+            try {
+                localStorage.setItem('htmlvocalpitch_theme', themeKey);
+            } catch (e) {}
+            const sel = document.getElementById('themeSelect');
+            if (sel && sel.value !== themeKey) {
+                sel.value = themeKey;
+            }
+        }
+        applyTheme('cyan');
+
+        const liveNoteEl = document.getElementById('liveNote');
+        const liveOctaveEl = document.getElementById('liveOctave');
+        const liveFreqEl = document.getElementById('liveFreq');
+        const centsNeedleEl = document.getElementById('centsNeedle');
+        const centsValueEl = document.getElementById('centsValue');
+        const btnToggleMic = document.getElementById('btnToggleMic');
+        const micLabel = document.getElementById('micLabel');
+        const btnPause = document.getElementById('btnPause');
+        const pauseLabel = document.getElementById('pauseLabel');
+        const btnClear = document.getElementById('btnClear');
+        const btnDemo = document.getElementById('btnDemo');
+        const themeSelect = document.getElementById('themeSelect');
+        const octaveRangeSelect = document.getElementById('octaveRangeSelect');
+        const sensitivitySlider = document.getElementById('sensitivitySlider');
+        const notationSelect = document.getElementById('notationSelect');
+        const speedSelect = document.getElementById('speedSelect');
+        const pianoSidebar = document.getElementById('pianoSidebar');
+        const pitchCanvas = document.getElementById('pitchCanvas');
+        const canvasCtx = pitchCanvas.getContext('2d');
+        const micPromptOverlay = document.getElementById('micPromptOverlay');
+        const btnStartPrompt = document.getElementById('btnStartPrompt');
+        const btnStartDemoPrompt = document.getElementById('btnStartDemoPrompt');
+
+        function freqToMidi(freq) {
+            return 69 + 12 * Math.log2(freq / 440);
+        }
+
+        function midiToFreq(midi) {
+            return 440 * Math.pow(2, (midi - 69) / 12);
+        }
+
+        function midiToNoteInfo(midiFractional) {
+            const roundedMidi = Math.round(midiFractional);
+            const cents = Math.round((midiFractional - roundedMidi) * 100);
+            const noteIndex = ((roundedMidi % 12) + 12) % 12;
+            const octave = Math.floor(roundedMidi / 12) - 1;
+            const name = state.notation === 'english' ? NOTE_NAMES_EN[noteIndex] : NOTE_NAMES_ES[noteIndex];
+            return { name, octave, cents, roundedMidi };
+        }
+
+        function playTone(midiNote, durationSec = 0.8) {
+            if (!state.audioContext) {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (state.audioContext.state === 'suspended') {
+                state.audioContext.resume();
+            }
+
+            const freq = midiToFreq(midiNote);
+            const osc = state.audioContext.createOscillator();
+            const gain = state.audioContext.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, state.audioContext.currentTime);
+
+            gain.gain.setValueAtTime(0.2, state.audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + durationSec);
+
+            osc.connect(gain);
+            gain.connect(state.audioContext.destination);
+
+            osc.start();
+            osc.stop(state.audioContext.currentTime + durationSec);
+        }
+
+        function buildPianoRoll() {
+            pianoSidebar.innerHTML = '';
+            const totalNotes = state.maxMidi - state.minMidi + 1;
+            const keyHeightPercent = 100 / totalNotes;
+
+            for (let midi = state.maxMidi; midi >= state.minMidi; midi--) {
+                const noteIndex = ((midi % 12) + 12) % 12;
+                const isBlack = IS_BLACK_KEY[noteIndex];
+                const isC = noteIndex === 0;
+                const octave = Math.floor(midi / 12) - 1;
+                const noteName = state.notation === 'english' ? NOTE_NAMES_EN[noteIndex] : NOTE_NAMES_ES[noteIndex];
+
+                const keyEl = document.createElement('div');
+                keyEl.className = `piano-key ${isBlack ? 'black' : 'white'} ${isC ? 'is-c' : ''}`;
+                keyEl.style.height = `${keyHeightPercent}%`;
+                keyEl.style.top = `${((state.maxMidi - midi) / totalNotes) * 100}%`;
+                keyEl.dataset.midi = midi;
+
+                if (isC || !isBlack) {
+                    keyEl.textContent = isC ? `${noteName}${octave}` : noteName;
+                }
+
+                keyEl.addEventListener('mousedown', () => {
+                    keyEl.classList.add('active-playing');
+                    playTone(midi);
+                    updateDashboard(midiToFreq(midi), midi);
+                });
+
+                keyEl.addEventListener('mouseup', () => keyEl.classList.remove('active-playing'));
+                keyEl.addEventListener('mouseleave', () => keyEl.classList.remove('active-playing'));
+
+                pianoSidebar.appendChild(keyEl);
+            }
+        }
+
+        function detectPitch(buffer, sampleRate) {
+            const SIZE = buffer.length;
+            let sumSquare = 0;
+            for (let i = 0; i < SIZE; i++) {
+                sumSquare += buffer[i] * buffer[i];
+            }
+            const rms = Math.sqrt(sumSquare / SIZE);
+
+            if (rms < state.noiseGateThreshold) {
+                return null;
+            }
+
+            const maxPeriod = Math.floor(sampleRate / 65);
+            const minPeriod = Math.floor(sampleRate / 1300);
+
+            // Normalized Square Difference / Correlation
+            const correlations = new Float32Array(maxPeriod + 1);
+
+            for (let tau = minPeriod; tau <= maxPeriod; tau++) {
+                let sum = 0;
+                let norm1 = 0;
+                let norm2 = 0;
+                for (let i = 0; i < SIZE - tau; i++) {
+                    sum += buffer[i] * buffer[i + tau];
+                    norm1 += buffer[i] * buffer[i];
+                    norm2 += buffer[i + tau] * buffer[i + tau];
+                }
+                const denom = norm1 + norm2;
+                correlations[tau] = denom > 0 ? (2 * sum) / denom : 0;
+            }
+
+            // Identificar todos los picos locales positivos
+            const peaks = [];
+            for (let tau = minPeriod + 1; tau < maxPeriod - 1; tau++) {
+                if (correlations[tau] > correlations[tau - 1] && correlations[tau] >= correlations[tau + 1]) {
+                    if (correlations[tau] > 0.4) {
+                        peaks.push({ tau, val: correlations[tau] });
+                    }
+                }
+            }
+
+            if (peaks.length === 0) {
+                return null;
+            }
+
+            // Encontrar el pico de máxima correlación
+            let maxVal = -1;
+            for (let i = 0; i < peaks.length; i++) {
+                if (peaks[i].val > maxVal) {
+                    maxVal = peaks[i].val;
+                }
+            }
+
+            // Si la periodicidad máxima es débil, es ruido o consonante sorda
+            if (maxVal < 0.72) {
+                return null;
+            }
+
+            // Regla fundamental contra caídas de octava (McLeod Pitch Method):
+            // Seleccionar el PRIMER pico que alcance al menos el 85% del pico máximo.
+            // Esto prioriza el período fundamental más corto (frecuencia real) en vez de
+            // múltiplos del período (2*T, 3*T) producidos por subarmónicos vocales.
+            const cutoff = maxVal * 0.85;
+            let chosenPeak = null;
+            for (let i = 0; i < peaks.length; i++) {
+                if (peaks[i].val >= cutoff) {
+                    chosenPeak = peaks[i];
+                    break;
+                }
+            }
+
+            if (!chosenPeak) {
+                return null;
+            }
+
+            // Guardia adicional contra caídas de octava:
+            // Si existe un pico anterior cercano a la mitad del período con correlación sólida, es el fundamental
+            for (let i = 0; i < peaks.length; i++) {
+                const p = peaks[i];
+                if (p.tau < chosenPeak.tau) {
+                    const halfTau = chosenPeak.tau / 2;
+                    const thirdTau = chosenPeak.tau / 3;
+                    if (Math.abs(p.tau - halfTau) <= 2.5 && p.val >= chosenPeak.val * 0.72 && p.val >= 0.65) {
+                        chosenPeak = p;
+                        break;
+                    } else if (Math.abs(p.tau - thirdTau) <= 2.5 && p.val >= chosenPeak.val * 0.72 && p.val >= 0.65) {
+                        chosenPeak = p;
+                        break;
+                    }
+                }
+            }
+
+            // Interpolación parabólica refinada para precisión sub-muestra (cents exactos)
+            const bestPeriod = chosenPeak.tau;
+            const y1 = correlations[bestPeriod - 1];
+            const y2 = correlations[bestPeriod];
+            const y3 = correlations[bestPeriod + 1];
+            const denom = 2 * (2 * y2 - y1 - y3);
+            const delta = Math.abs(denom) > 1e-6 ? (y3 - y1) / denom : 0;
+            const exactPeriod = bestPeriod + delta;
+
+            return sampleRate / exactPeriod;
+        }
+
+        function updateDashboard(freq, midiVal) {
+            if (!freq || !midiVal) {
+                liveNoteEl.textContent = '--';
+                liveOctaveEl.textContent = '';
+                liveFreqEl.textContent = '0.0 Hz';
+                centsNeedleEl.style.left = '50%';
+                centsNeedleEl.style.backgroundColor = 'var(--text-secondary)';
+                centsValueEl.textContent = '0¢';
+                return;
+            }
+
+            const noteInfo = midiToNoteInfo(midiVal);
+            liveNoteEl.textContent = noteInfo.name;
+            liveOctaveEl.textContent = noteInfo.octave;
+            liveFreqEl.textContent = `${freq.toFixed(1)} Hz`;
+
+            const clampedCents = Math.max(-50, Math.min(50, noteInfo.cents));
+            const needlePercent = ((clampedCents + 50) / 100) * 100;
+            centsNeedleEl.style.left = `${needlePercent}%`;
+            centsValueEl.textContent = `${clampedCents > 0 ? '+' : ''}${clampedCents}¢`;
+
+            const absCents = Math.abs(clampedCents);
+            if (absCents <= 5) {
+                centsNeedleEl.style.backgroundColor = 'var(--accent-green)';
+                centsNeedleEl.style.boxShadow = '0 0 8px var(--accent-green)';
+            } else if (absCents <= 18) {
+                centsNeedleEl.style.backgroundColor = 'var(--accent-yellow)';
+                centsNeedleEl.style.boxShadow = '0 0 8px var(--accent-yellow)';
+            } else {
+                centsNeedleEl.style.backgroundColor = 'var(--accent-red)';
+                centsNeedleEl.style.boxShadow = '0 0 8px var(--accent-red)';
+            }
+        }
+
+        function renderCanvas() {
+            const width = pitchCanvas.width = pitchCanvas.clientWidth;
+            const height = pitchCanvas.height = pitchCanvas.clientHeight;
+            const totalNotes = state.maxMidi - state.minMidi + 1;
+            const noteHeight = height / totalNotes;
+
+            canvasCtx.fillStyle = '#080a0d';
+            canvasCtx.fillRect(0, 0, width, height);
+
+            for (let midi = state.minMidi; midi <= state.maxMidi; midi++) {
+                const y = ((state.maxMidi - midi) / totalNotes) * height;
+                const noteIndex = ((midi % 12) + 12) % 12;
+                const isBlack = IS_BLACK_KEY[noteIndex];
+                const isC = noteIndex === 0;
+
+                if (isBlack) {
+                    canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+                    canvasCtx.fillRect(0, y, width, noteHeight);
+                }
+
+                canvasCtx.beginPath();
+                canvasCtx.strokeStyle = isC ? state.currentTheme.glowC : 'rgba(255, 255, 255, 0.05)';
+                canvasCtx.lineWidth = isC ? 1.5 : 1;
+                canvasCtx.moveTo(0, y);
+                canvasCtx.lineTo(width, y);
+                canvasCtx.stroke();
+            }
+
+            const timeStep = 80;
+            canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            canvasCtx.lineWidth = 1;
+            for (let x = width; x >= 0; x -= timeStep) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(x, 0);
+                canvasCtx.lineTo(x, height);
+                canvasCtx.stroke();
+            }
+
+            const pointSpacing = state.scrollSpeed * 2;
+            const history = state.history;
+
+            if (history.length > 1) {
+                canvasCtx.lineCap = 'round';
+                canvasCtx.lineJoin = 'round';
+
+                for (let i = 1; i < history.length; i++) {
+                    const p1 = history[i - 1];
+                    const p2 = history[i];
+
+                    const x1 = width - (history.length - (i - 1)) * pointSpacing;
+                    const x2 = width - (history.length - i) * pointSpacing;
+
+                    if (x2 < 0) continue;
+
+                    if (p1.midi !== null && p2.midi !== null) {
+                        // Si hay un salto mayor a 5 semitonos entre cuadros adyacentes, no unimos con línea vertical para no ensuciar el gráfico
+                        const midiDiff = Math.abs(p1.midi - p2.midi);
+                        const y2 = ((state.maxMidi - p2.midi) / totalNotes) * height + (noteHeight / 2);
+
+                        if (midiDiff <= 5) {
+                            const y1 = ((state.maxMidi - p1.midi) / totalNotes) * height + (noteHeight / 2);
+
+                            // Resplandor exterior dinámico
+                            canvasCtx.beginPath();
+                            canvasCtx.strokeStyle = state.currentTheme.glowLine;
+                            canvasCtx.lineWidth = 7;
+                            canvasCtx.moveTo(x1, y1);
+                            canvasCtx.lineTo(x2, y2);
+                            canvasCtx.stroke();
+
+                            // Trazo central nítido dinámico
+                            canvasCtx.beginPath();
+                            canvasCtx.strokeStyle = state.currentTheme.primary;
+                            canvasCtx.lineWidth = 2.5;
+                            canvasCtx.moveTo(x1, y1);
+                            canvasCtx.lineTo(x2, y2);
+                            canvasCtx.stroke();
+                        } else {
+                            // Punto de inicio de nueva nota
+                            canvasCtx.fillStyle = state.currentTheme.primary;
+                            canvasCtx.beginPath();
+                            canvasCtx.arc(x2, y2, 2.5, 0, Math.PI * 2);
+                            canvasCtx.fill();
+                        }
+                    } else if (p2.midi !== null) {
+                        const y2 = ((state.maxMidi - p2.midi) / totalNotes) * height + (noteHeight / 2);
+                        canvasCtx.fillStyle = state.currentTheme.primary;
+                        canvasCtx.beginPath();
+                        canvasCtx.arc(x2, y2, 2.5, 0, Math.PI * 2);
+                        canvasCtx.fill();
+                    }
+                }
+            }
+
+            canvasCtx.strokeStyle = state.currentTheme.cursor;
+            canvasCtx.setLineDash([4, 4]);
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(width - 2, 0);
+            canvasCtx.lineTo(width - 2, height);
+            canvasCtx.stroke();
+            canvasCtx.setLineDash([]);
+        }
+
+        let audioBuffer = new Float32Array(2048);
+        const midiMedianBuffer = [];
+        let silenceCount = 0;
+
+        function getMedianValue(arr) {
+            if (arr.length === 0) return null;
+            const sorted = [...arr].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        }
+
+        function audioProcessLoop() {
+            let detectedFreq = null;
+            let currentMidi = null;
+
+            if (state.isRecording && !state.isPaused && state.analyser) {
+                state.analyser.getFloatTimeDomainData(audioBuffer);
+                const rawFreq = detectPitch(audioBuffer, state.audioContext.sampleRate);
+
+                if (rawFreq && rawFreq >= midiToFreq(state.minMidi - 2) && rawFreq <= midiToFreq(state.maxMidi + 2)) {
+                    silenceCount = 0;
+                    const rawMidi = freqToMidi(rawFreq);
+
+                    // Filtro de mediana de 3 cuadros para eliminar cualquier pico aislado sin latencia perceptible
+                    midiMedianBuffer.push(rawMidi);
+                    if (midiMedianBuffer.length > 3) {
+                        midiMedianBuffer.shift();
+                    }
+
+                    currentMidi = getMedianValue(midiMedianBuffer);
+                    detectedFreq = midiToFreq(currentMidi);
+                    updateDashboard(detectedFreq, currentMidi);
+                } else {
+                    silenceCount++;
+                    if (silenceCount >= 2) {
+                        midiMedianBuffer.length = 0;
+                    }
+                    updateDashboard(null, null);
+                }
+
+                state.history.push({
+                    time: Date.now(),
+                    midi: currentMidi,
+                    freq: detectedFreq
+                });
+
+                if (state.history.length > state.maxHistoryPoints) {
+                    state.history.shift();
+                }
+            } else if (state.isDemoMode && !state.isPaused) {
+                state.demoTime += 0.04;
+                const noteSequence = [48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72];
+                const seqIndex = Math.floor((state.demoTime / 1.5) % noteSequence.length);
+                const targetMidi = noteSequence[seqIndex];
+                const vibrato = Math.sin(state.demoTime * 6) * 0.15;
+                currentMidi = targetMidi + vibrato;
+                detectedFreq = midiToFreq(currentMidi);
+
+                updateDashboard(detectedFreq, currentMidi);
+                state.history.push({
+                    time: Date.now(),
+                    midi: currentMidi,
+                    freq: detectedFreq
+                });
+                if (state.history.length > state.maxHistoryPoints) state.history.shift();
+            }
+
+            renderCanvas();
+            requestAnimationFrame(audioProcessLoop);
+        }
+
+        async function startMicrophone() {
+            try {
+                // Verificar soporte de API y contexto seguro (requisito de Android)
+                const isSecure = window.isSecureContext;
+                const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+                const legacyGetUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+                if (!hasMediaDevices && !legacyGetUserMedia) {
+                    if (!isSecure) {
+                        alert(
+                            "⚠️ Android bloquea el micrófono en conexiones no seguras (HTTP o file://).\n\n" +
+                            "Para que funcione en tu celular Android:\n" +
+                            "1) Debes servir la página con HTTPS (por ejemplo con ngrok o localtunnel).\n" +
+                            "O bien:\n" +
+                            "2) En Chrome de Android abre: chrome://flags/#unsafely-treat-insecure-origin-as-secure\n" +
+                            "y añade la dirección IP de tu servidor (ej: http://192.168.1.X:8000)."
+                        );
+                        return;
+                    }
+                    throw new Error("Tu navegador no soporta captura de audio.");
+                }
+
+                if (!state.audioContext) {
+                    state.audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+                }
+                if (state.audioContext.state === 'suspended') {
+                    await state.audioContext.resume();
+                }
+
+                let stream = null;
+                // Intento 1: restricciones avanzadas para voz limpia
+                try {
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                echoCancellation: false,
+                                noiseSuppression: false,
+                                autoGainControl: true
+                            }
+                        });
+                    }
+                } catch (constraintErr) {
+                    console.warn("Fallo con restricciones avanzadas, intentando audio estándar:", constraintErr);
+                }
+
+                // Intento 2: fallback a audio estándar (crucial para varios dispositivos Android)
+                if (!stream) {
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    } else if (legacyGetUserMedia) {
+                        stream = await new Promise((resolve, reject) => {
+                            legacyGetUserMedia.call(navigator, { audio: true }, resolve, reject);
+                        });
+                    }
+                }
+
+                if (!stream) {
+                    throw new Error("No se pudo iniciar el flujo de audio.");
+                }
+
+                state.microphoneStream = stream;
+                const source = state.audioContext.createMediaStreamSource(stream);
+
+                const hpFilter = state.audioContext.createBiquadFilter();
+                hpFilter.type = 'highpass';
+                hpFilter.frequency.value = 75;
+
+                const lpFilter = state.audioContext.createBiquadFilter();
+                lpFilter.type = 'lowpass';
+                lpFilter.frequency.value = 1800;
+
+                state.analyser = state.audioContext.createAnalyser();
+                state.analyser.fftSize = 2048;
+
+                source.connect(hpFilter);
+                hpFilter.connect(lpFilter);
+                lpFilter.connect(state.analyser);
+
+                state.isRecording = true;
+                state.isDemoMode = false;
+                btnToggleMic.classList.add('recording');
+                btnDemo.classList.remove('active');
+                micLabel.textContent = 'Detener Mic';
+                micPromptOverlay.classList.add('hidden');
+            } catch (err) {
+                let msg = err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
+                    ? 'Permiso de micrófono denegado en Android. Concede el permiso en Ajustes de Chrome del sitio.'
+                    : 'Error al acceder al micrófono: ' + err.message;
+                alert(msg + '\n\nPuedes usar el botón "Simular Voz" para probar todas las funciones mientras tanto.');
+            }
+        }
+
+        function stopMicrophone() {
+            if (state.microphoneStream) {
+                state.microphoneStream.getTracks().forEach(t => t.stop());
+                state.microphoneStream = null;
+            }
+            state.isRecording = false;
+            btnToggleMic.classList.remove('recording');
+            micLabel.textContent = 'Iniciar Micrófono';
+            updateDashboard(null, null);
+        }
+
+        btnToggleMic.addEventListener('click', () => {
+            if (state.isRecording) stopMicrophone();
+            else startMicrophone();
+        });
+
+        btnPause.addEventListener('click', () => {
+            state.isPaused = !state.isPaused;
+            pauseLabel.textContent = state.isPaused ? 'Reanudar' : 'Pausar';
+            btnPause.classList.toggle('active', state.isPaused);
+        });
+
+        btnClear.addEventListener('click', () => {
+            state.history = [];
+            updateDashboard(null, null);
+            renderCanvas();
+        });
+
+        btnDemo.addEventListener('click', () => {
+            if (state.isRecording) stopMicrophone();
+            state.isDemoMode = !state.isDemoMode;
+            btnDemo.classList.toggle('active', state.isDemoMode);
+            micPromptOverlay.classList.add('hidden');
+            if (!state.audioContext) {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        });
+
+        btnStartPrompt.addEventListener('click', startMicrophone);
+        btnStartDemoPrompt.addEventListener('click', () => {
+            btnDemo.click();
+        });
+
+        const btnAbout = document.getElementById('btnAbout');
+        const aboutModal = document.getElementById('aboutModal');
+        const btnCloseAbout = document.getElementById('btnCloseAbout');
+
+        if (btnAbout && aboutModal && btnCloseAbout) {
+            btnAbout.addEventListener('click', () => {
+                aboutModal.classList.remove('hidden');
+            });
+            btnCloseAbout.addEventListener('click', () => {
+                aboutModal.classList.add('hidden');
+            });
+            aboutModal.addEventListener('click', (e) => {
+                if (e.target === aboutModal) {
+                    aboutModal.classList.add('hidden');
+                }
+            });
+        }
+
+        octaveRangeSelect.addEventListener('change', (e) => {
+            const parts = e.target.value.split('-').map(Number);
+            state.minMidi = (parts[0] + 1) * 12; // Cx
+            state.maxMidi = (parts[1] + 2) * 12 - 1; // Bx
+            buildPianoRoll();
+            renderCanvas();
+        });
+
+        sensitivitySlider.addEventListener('input', (e) => {
+            state.noiseGateThreshold = parseFloat(e.target.value);
+        });
+
+        notationSelect.addEventListener('change', (e) => {
+            state.notation = e.target.value;
+            buildPianoRoll();
+        });
+
+        speedSelect.addEventListener('change', (e) => {
+            state.scrollSpeed = parseFloat(e.target.value);
+        });
+
+        themeSelect.addEventListener('change', (e) => {
+            applyTheme(e.target.value);
+            renderCanvas();
+        });
+
+        window.addEventListener('resize', () => {
+            renderCanvas();
+        });
+
+        // Inicialización
+        try {
+            const savedTheme = localStorage.getItem('htmlvocalpitch_theme');
+            if (savedTheme && THEMES[savedTheme]) {
+                applyTheme(savedTheme);
+            }
+        } catch (e) {}
+
+        buildPianoRoll();
+        if (new URLSearchParams(window.location.search).has('demo')) {
+            btnDemo.click();
+        }
+        requestAnimationFrame(audioProcessLoop);
+    </script>
+</body>
+</html>

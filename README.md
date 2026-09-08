@@ -27,6 +27,7 @@ Cada instrumento es un archivo HTML independiente: se abre directamente en cualq
 | 🎸 **Bajo** | [`bass-fretboard.html`](bass-fretboard.html) | Optimizador de digitaciones de líneas de bajo con mínima distancia de mano, escalas y mástil para 4, 5 y 6 cuerdas. |
 | 🥁 **Batería** | [`drum-grooves.html`](drum-grooves.html) | Grooves interactivos y editables con práctica por capas y código de color por extremidad (bombo, tambor, hi-hat). |
 | 🎷 **Armónica** | [`harmonica-map.html`](harmonica-map.html) | Mapa completo de agujeros Richter, notas sopladas, aspiradas y bends calculados, 6 posiciones y recomendador de tonalidad. |
+| 🎙️ **Monitor Vocal & Pitch** | [`vocal-pitch.html`](vocal-pitch.html) | Monitor de afinación en tiempo real con algoritmo MPM/YIN, piano roll interactivo, medidor de centésimas y modo simulación. |
 
 ---
 
@@ -84,6 +85,21 @@ Cada instrumento es un archivo HTML independiente: se abre directamente en cualq
 
 ---
 
+### 6. 🎙️ Monitor Vocal & Afinación ([`vocal-pitch.html`](vocal-pitch.html))
+* **Detección de tono en tiempo real (DSP)**: Algoritmo MPM (*McLeod Pitch Method*) con detección de picos fundamentales y rechazo activo de errores de octava y subarmónicos.
+* **Piano Roll vertical interactivo**: Trazo luminoso continuo de la melodía vocal a 60 FPS sobre un teclado vertical de referencia que reproduce tonos de guía al hacer clic.
+* **Afinador de centésimas**: Aguja dinámica con feedback visual inmediato (verde para afinación exacta $\pm$5¢, amarillo para desviación ligera $\pm$18¢, rojo para desafinado).
+* **Filtros de audio y Noise Gate**: Filtro paso-alto (75 Hz) y paso-bajo (1800 Hz) para aislar la voz de zumbidos, y umbral de ruido configurable.
+* **Personalización completa**: Notación anglosajona o latina (Do Re Mi), 6 temas visuales neón (Cyan, Esmeralda, Púrpura, Ámbar, Coral, Matrix), velocidad de scroll y rangos vocales (Estándar C2–B5, Agudas C3–B6, Graves C1–B4, Completo C2–B6).
+* **Modo Demostración**: Permite explorar y visualizar el flujo melódico sin necesidad de encender el micrófono.
+* *Desarrollado en colaboración con Victoria Cespón.*
+
+<p align="center">
+  <img src="ss-vocal.png" alt="Monitor Vocal de Afinación" width="700">
+</p>
+
+---
+
 ## 📁 Biblioteca de Riffs MIDI Incluida
 
 El repositorio incluye más de 40 archivos MIDI listos para cargar y practicar en la carpeta [`riffs-midi/`](riffs-midi/):
@@ -115,11 +131,12 @@ No requiere instalación, dependencias ni conexión a internet:
 
 ---
 
-## 👤 Autor
+## 👥 Autores
 
-Desarrollado por **Claudio Cespon**
-* 💼 [Perfil en LinkedIn](https://www.linkedin.com/in/claudio-cespon/)
-* 🐙 [GitHub: @cdcespon](https://github.com/cdcespon)
+* **Claudio Cespon**
+  * 💼 [Perfil en LinkedIn](https://www.linkedin.com/in/claudio-cespon/)
+  * 🐙 [GitHub: @cdcespon](https://github.com/cdcespon)
+* **Victoria Cespón** (coautora de *HtmlVocalPitch*)
 
 ---
 *Licencia MIT · Desarrollado con HTML5, CSS3, JavaScript & Web Audio API.*
