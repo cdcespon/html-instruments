@@ -1,85 +1,344 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Herramientas de estudio musical</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{--fondo:#161412;--panel:#201D1A;--panel-alto:#2A2622;--acento:#6E4E36;--acento-claro:#8A6440;
-  --crema:#EDE7DA;--texto:#C9C0B0;--tenue:#8A8073;--linea:#332E28;--teal:#4FB8A8}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--fondo);color:var(--texto);font-family:'IBM Plex Mono',ui-monospace,monospace;
-  padding:40px 20px 60px}
-.marco{max-width:940px;margin:0 auto}
-.cabecera{border-left:3px solid var(--acento-claro);padding-left:16px;margin-bottom:34px}
-h1{font-family:'Barlow Condensed',system-ui,sans-serif;font-size:36px;font-weight:600;color:var(--crema);line-height:1.1}
-.cabecera p{font-size:13px;color:var(--tenue);margin-top:8px;line-height:1.7;max-width:74ch}
-.lista{display:grid;gap:10px}
-a.card{display:block;background:var(--panel);border:1px solid var(--linea);border-left:3px solid var(--acento);
-  border-radius:4px;padding:18px 20px;text-decoration:none;color:inherit;transition:background .15s,border-color .15s}
-a.card:hover{background:var(--panel-alto);border-left-color:var(--acento-claro)}
-a.card:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-a.card b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:600;color:var(--crema)}
-a.card span{display:block;font-size:12.5px;line-height:1.7;color:var(--tenue);margin-top:5px;max-width:76ch}
-a.card em{font-style:normal;display:inline-block;font-size:11px;color:var(--teal);margin-top:8px}
-.nota{margin-top:30px;padding-top:18px;border-top:1px solid var(--linea);font-size:12px;
-  line-height:1.8;color:var(--tenue);max-width:76ch}
-.nota b{color:var(--texto);font-weight:400}
-.firma{margin-top:26px;padding-top:16px;border-top:1px solid var(--linea);font-size:11.5px;color:var(--tenue)}
-.firma b{color:var(--texto);font-weight:400}
-.firma a{color:var(--teal);text-decoration:none}
-@media (max-width:600px){h1{font-size:28px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MusicaTools — Apps para entusiastas y alumnos de musica</title>
+  <meta name="description" content="Suite de herramientas interactivas para el estudio musical: teclado con MIDI, guitarra, bajo, bateria y armonica. Funciona offline, sin instalacion, directo en el navegador.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0d0b09;--bg2:#131110;--surface:#1a1714;--surface2:#221f1b;
+      --border:#2e2924;--border-hi:#3d3630;
+      --amber:#d4843a;--amber-lo:#8a5520;--amber-hi:#f0a855;
+      --teal:#3db8a4;--teal-lo:#1d6b5f;--teal-hi:#5dd4c0;
+      --cream:#ede7da;--text:#c9c0b0;--muted:#7a7268;
+      --glow-amber:rgba(212,132,58,0.15);--glow-teal:rgba(61,184,164,0.12);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:"Outfit",system-ui,sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
+    .wrap{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+    /* HERO */
+    header{padding:80px 0 60px;text-align:center;position:relative}
+    .hero-glow{position:absolute;top:0;left:50%;transform:translateX(-50%);width:700px;height:400px;background:radial-gradient(ellipse at 50% 0%,rgba(212,132,58,.18) 0%,transparent 70%);pointer-events:none}
+    .badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border-hi);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:500;color:var(--amber-hi);letter-spacing:.06em;text-transform:uppercase;margin-bottom:28px}
+    .badge::before{content:"";width:6px;height:6px;background:var(--amber-hi);border-radius:50%;box-shadow:0 0 8px var(--amber-hi);animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    h1{font-size:clamp(36px,6vw,70px);font-weight:800;line-height:1.05;color:var(--cream);letter-spacing:-.02em;margin-bottom:10px}
+    .accent{background:linear-gradient(135deg,var(--amber-hi) 0%,var(--teal-hi) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-sub{font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:560px;margin:16px auto 36px;font-weight:400;line-height:1.7}
+    .hero-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:48px}
+    .pill{background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12.5px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+    .pill strong{color:var(--text);font-weight:500}
+
+    /* DIVIDER */
+    .divider{height:1px;background:linear-gradient(to right,transparent,var(--border-hi),transparent);margin:0 0 72px}
+
+    /* SECTION LABEL */
+    .section-label{display:flex;align-items:center;gap:12px;margin-bottom:40px}
+    .section-label span{font-size:11px;font-family:"IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+    .section-label::after{content:"";flex:1;height:1px;background:var(--border)}
+
+    /* APP CARDS */
+    .apps{display:flex;flex-direction:column;gap:72px;margin-bottom:80px}
+    .app-card{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+    .app-card.reverse{direction:rtl}
+    .app-card.reverse>*{direction:ltr}
+
+    .app-screenshot{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 0 1px rgba(255,255,255,.04) inset,0 32px 64px rgba(0,0,0,.5),0 0 60px var(--glow-amber);transition:box-shadow .4s,transform .4s;aspect-ratio:16/9;display:block;text-decoration:none}
+    .app-screenshot:hover{box-shadow:0 0 0 1px rgba(255,255,255,.06) inset,0 40px 80px rgba(0,0,0,.6),0 0 80px rgba(212,132,58,.25);transform:translateY(-4px) scale(1.01)}
+    .app-screenshot img{width:100%;height:100%;object-fit:cover;object-position:top left;display:block}
+    .screen-bar{position:absolute;top:0;left:0;right:0;height:28px;background:rgba(13,11,9,.85);backdrop-filter:blur(4px);display:flex;align-items:center;padding:0 12px;gap:6px;z-index:2}
+    .dot{width:9px;height:9px;border-radius:50%}
+    .dot-r{background:#ff5f57}.dot-y{background:#febc2e}.dot-g{background:#28c840}
+
+    .app-card:nth-child(even) .app-screenshot{box-shadow:0 0 0 1px rgba(255,255,255,.04) inset,0 32px 64px rgba(0,0,0,.5),0 0 60px var(--glow-teal)}
+    .app-card:nth-child(even) .app-screenshot:hover{box-shadow:0 0 0 1px rgba(255,255,255,.06) inset,0 40px 80px rgba(0,0,0,.6),0 0 80px rgba(61,184,164,.25)}
+    .app-card:nth-child(even) .app-num{color:var(--teal-lo)}
+    .app-card:nth-child(even) .app-cta{background:linear-gradient(135deg,var(--teal-lo),var(--teal));box-shadow:0 4px 20px rgba(61,184,164,.3)}
+    .app-card:nth-child(even) .app-cta:hover{box-shadow:0 8px 28px rgba(61,184,164,.45)}
+    .app-card:nth-child(even) .tag{color:var(--amber-hi)}
+
+    .app-num{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--amber-lo);letter-spacing:.1em;margin-bottom:10px}
+    .app-title{font-size:clamp(24px,3.5vw,38px);font-weight:700;color:var(--cream);line-height:1.1;margin-bottom:14px;letter-spacing:-.01em}
+    .app-desc{font-size:15px;color:var(--muted);line-height:1.75;margin-bottom:22px;max-width:42ch}
+    .app-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+    .tag{font-size:12px;font-family:"IBM Plex Mono",monospace;background:var(--surface2);border:1px solid var(--border-hi);border-radius:6px;padding:3px 10px;color:var(--teal-hi)}
+    .app-cta{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--amber-lo),var(--amber));color:var(--cream);text-decoration:none;border-radius:8px;padding:12px 22px;font-size:14px;font-weight:600;letter-spacing:.02em;transition:opacity .2s,transform .2s,box-shadow .2s;box-shadow:0 4px 20px rgba(212,132,58,.3)}
+    .app-cta:hover{opacity:.9;transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,132,58,.45)}
+    .app-cta svg{width:16px;height:16px;flex-shrink:0}
+
+    /* MIDI BANNER */
+    .midi-banner{background:var(--surface);border:1px solid var(--border-hi);border-radius:16px;padding:40px 44px;margin-bottom:80px;display:grid;grid-template-columns:auto 1fr auto;gap:32px;align-items:center;position:relative;overflow:hidden}
+    .midi-banner::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--glow-amber) 0%,var(--glow-teal) 100%);pointer-events:none}
+    .midi-icon{font-size:48px;line-height:1;position:relative}
+    .midi-text{position:relative}
+    .midi-text h3{font-size:20px;font-weight:700;color:var(--cream);margin-bottom:8px}
+    .midi-text p{font-size:14px;color:var(--muted);line-height:1.65;max-width:56ch}
+    .midi-grid{display:flex;flex-direction:column;gap:6px;position:relative}
+    .midi-row{display:flex;gap:6px}
+    .midi-cell{width:28px;height:28px;border-radius:4px;background:var(--surface2);border:1px solid var(--border)}
+    .midi-cell.on-a{background:var(--amber-lo);border-color:var(--amber);box-shadow:0 0 8px rgba(212,132,58,.4)}
+    .midi-cell.on-t{background:var(--teal-lo);border-color:var(--teal);box-shadow:0 0 8px rgba(61,184,164,.4)}
+
+    /* FOOTER */
+    footer{border-top:1px solid var(--border);padding:40px 0}
+    .footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+    .footer-left{font-size:13px;color:var(--muted)}
+    .footer-left strong{color:var(--text);font-weight:500}
+    .footer-links{display:flex;gap:24px}
+    .footer-links a{font-size:13px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
+    .footer-links a:hover{color:var(--teal-hi)}
+    .footer-links svg{width:15px;height:15px;flex-shrink:0}
+    .footer-tech{font-size:12px;color:var(--border-hi);font-family:"IBM Plex Mono",monospace;width:100%;text-align:center;margin-top:12px}
+
+    /* RESPONSIVE */
+    @media(max-width:820px){
+      .app-card,.app-card.reverse{grid-template-columns:1fr;direction:ltr}
+      .app-card.reverse .app-screenshot{order:-1}
+      .app-desc{max-width:100%}
+      .midi-banner{grid-template-columns:1fr}
+      .midi-grid{display:none}
+    }
+    @media(max-width:480px){header{padding:50px 0 40px}.apps{gap:48px}}
+
+    /* SCROLL REVEAL */
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
+    .reveal.visible{opacity:1;transform:none}
+  </style>
 </head>
 <body>
-<div class="marco">
-  <div class="cabecera">
-    <h1>Herramientas de estudio musical</h1>
-    <p>Cinco aplicaciones para practicar, una por instrumento. Cada una es un archivo HTML suelto: se abre haciendo doble clic, funciona sin conexión y no necesita instalar nada. Todo el sonido se genera en el navegador.</p>
+
+<header>
+  <div class="wrap">
+    <div class="hero-glow"></div>
+    <div class="badge">Suite de herramientas musicales</div>
+    <h1>Apps para <span class="accent">entusiastas<br>y alumnos</span> de musica</h1>
+    <p class="hero-sub">
+      Cinco aplicaciones interactivas para practicar instrumentos, estudiar acordes,
+      visualizar escalas y trabajar con archivos MIDI &mdash; todo en el navegador,
+      sin instalacion ni conexion a internet.
+    </p>
+    <div class="hero-pills">
+      <span class="pill"><strong>100%</strong> offline</span>
+      <span class="pill"><strong>Web Audio API</strong> nativa</span>
+      <span class="pill"><strong>5</strong> motores de sintesis</span>
+      <span class="pill"><strong>42+</strong> archivos MIDI</span>
+      <span class="pill">sin <strong>Node.js</strong> &middot; sin dependencias</span>
+    </div>
+  </div>
+</header>
+
+<div class="divider"></div>
+
+<main>
+<div class="wrap">
+
+  <div class="section-label"><span>Aplicaciones incluidas</span></div>
+
+  <div class="apps">
+
+    <!-- 01 TECLADO -->
+    <div class="app-card reveal">
+      <a class="app-screenshot" href="keyboard-chords.html" id="link-keyboard">
+        <div class="screen-bar">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        </div>
+        <img src="ss-keyboard.png" alt="App Teclado y acordes">
+      </a>
+      <div class="app-info">
+        <div class="app-num">01 / 05</div>
+        <h2 class="app-title">&#127929; Teclado &amp; MIDI</h2>
+        <p class="app-desc">
+          Visualiza cualquier acorde con la digitacion exacta de ambas manos:
+          ambar para la izquierda, teal para la derecha. Carga tus propios archivos
+          <code>.mid</code>, controla el tempo y practica mano por mano con loop por compases.
+        </p>
+        <div class="app-tags">
+          <span class="tag">12 fundamentales</span>
+          <span class="tag">6 especies</span>
+          <span class="tag">Piano &middot; DX7 &middot; Rhodes &middot; Hammond &middot; Moog</span>
+          <span class="tag">Reproductor MIDI</span>
+        </div>
+        <a class="app-cta" href="keyboard-chords.html" id="cta-keyboard">
+          Abrir app
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 02 GUITARRA -->
+    <div class="app-card reverse reveal">
+      <a class="app-screenshot" href="guitar-chords.html" id="link-guitar">
+        <div class="screen-bar">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        </div>
+        <img src="ss-guitar.png" alt="App Guitarra acordes y escalas">
+      </a>
+      <div class="app-info">
+        <div class="app-num">02 / 05</div>
+        <h2 class="app-title">&#127928; Guitarra</h2>
+        <p class="app-desc">
+          Generador inteligente de digitaciones: evalua todas las combinaciones posibles
+          y las ordena por ergonomia de la mano. Detecta cejillas automaticamente.
+          Incluye escalas y las cinco posiciones de la pentatonica.
+        </p>
+        <div class="app-tags">
+          <span class="tag">4 afinaciones</span>
+          <span class="tag">8 especies de acordes</span>
+          <span class="tag">Cejilla automatica</span>
+          <span class="tag">Pentatonica &middot; Escalas</span>
+        </div>
+        <a class="app-cta" href="guitar-chords.html" id="cta-guitar">
+          Abrir app
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 03 BAJO -->
+    <div class="app-card reveal">
+      <a class="app-screenshot" href="bass-fretboard.html" id="link-bass">
+        <div class="screen-bar">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        </div>
+        <img src="ss-bass.png" alt="App Bajo mastil y optimizador">
+      </a>
+      <div class="app-info">
+        <div class="app-num">03 / 05</div>
+        <h2 class="app-title">&#127928; Bajo</h2>
+        <p class="app-desc">
+          Optimizador de posiciones de mastil: dada una linea de bajo, calcula que cuerda
+          y traste minimiza el desplazamiento de la mano. Soporte para 4, 5 y 6 cuerdas
+          con multiples afinaciones.
+        </p>
+        <div class="app-tags">
+          <span class="tag">4 / 5 / 6 cuerdas</span>
+          <span class="tag">Drop D &middot; Bb grave</span>
+          <span class="tag">Optimizador de lineas</span>
+          <span class="tag">Escalas y arpegios</span>
+        </div>
+        <a class="app-cta" href="bass-fretboard.html" id="cta-bass">
+          Abrir app
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 04 BATERIA -->
+    <div class="app-card reverse reveal">
+      <a class="app-screenshot" href="drum-grooves.html" id="link-drums">
+        <div class="screen-bar">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        </div>
+        <img src="ss-drums.png" alt="App Bateria grooves interactivos">
+      </a>
+      <div class="app-info">
+        <div class="app-num">04 / 05</div>
+        <h2 class="app-title">&#129345; Bateria</h2>
+        <p class="app-desc">
+          Grooves interactivos con practica por capas: empieza con el bombo solo,
+          suma el redoblante y finalmente el hi-hat. Codigo de color por extremidad
+          para distinguir que mano o pie ejecuta cada golpe.
+        </p>
+        <div class="app-tags">
+          <span class="tag">Rock &middot; Funk &middot; Shuffle &middot; Bossa &middot; Chacarera</span>
+          <span class="tag">Corcheas y tresillos</span>
+          <span class="tag">Practica por capas</span>
+          <span class="tag">Notas fantasma</span>
+        </div>
+        <a class="app-cta" href="drum-grooves.html" id="cta-drums">
+          Abrir app
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 05 ARMONICA -->
+    <div class="app-card reveal">
+      <a class="app-screenshot" href="harmonica-map.html" id="link-harmonica">
+        <div class="screen-bar">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+        </div>
+        <img src="ss-harmonica.png" alt="App Armonica mapa de agujeros">
+      </a>
+      <div class="app-info">
+        <div class="app-num">05 / 05</div>
+        <h2 class="app-title">&#127927; Armonica</h2>
+        <p class="app-desc">
+          Mapa completo de agujeros Richter para cualquier tonalidad: notas sopladas,
+          aspiradas y bends calculados por fisica de lengüetas. Buscador de que armonica
+          usar segun la tonalidad del tema, con 6 posiciones explicadas.
+        </p>
+        <div class="app-tags">
+          <span class="tag">12 tonalidades</span>
+          <span class="tag">6 posiciones</span>
+          <span class="tag">Bends calculados</span>
+          <span class="tag">Buscador de armonica</span>
+        </div>
+        <a class="app-cta" href="harmonica-map.html" id="cta-harmonica">
+          Abrir app
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+      </div>
+    </div>
+
   </div>
 
-  <div class="lista">
-    <a class="card" href="keyboard-chords.html">
-      <b>Teclado</b>
-      <span>Acordes con la digitación de las dos manos, y un reproductor de archivos MIDI sobre el mismo teclado, con tempo variable y repetición por compases.</span>
-      <em>Doce fundamentales × seis especies · cinco motores de síntesis</em>
-    </a>
-    <a class="card" href="guitar-chords.html">
-      <b>Guitarra</b>
-      <span>Generador de digitaciones de acordes: recorre todas las combinaciones que la mano alcanza y las ordena por lo que un guitarrista prioriza. Más escalas y las cinco posiciones de la pentatónica.</span>
-      <em>Cuatro afinaciones · ocho especies · cejilla detectada automáticamente</em>
-    </a>
-    <a class="card" href="bass-fretboard.html">
-      <b>Bajo</b>
-      <span>Optimizador de posiciones: elige en qué cuerda tocar cada nota de una línea para mover la mano lo menos posible. Más escalas y las cinco posiciones de la pentatónica.</span>
-      <em>Cuatro afinaciones · cuatro líneas en las doce tonalidades</em>
-    </a>
-    <a class="card" href="drum-grooves.html">
-      <b>Batería</b>
-      <span>Grooves explicados y editables, con práctica por capas: bombo solo, después con redoblante, después el hi-hat. El color indica qué extremidad toca cada golpe.</span>
-      <em>Siete grooves · grilla de corcheas o de tresillos</em>
-    </a>
-    <a class="card" href="harmonica-map.html">
-      <b>Armónica</b>
-      <span>Mapa completo de agujeros, con las notas que se consiguen doblando y en qué dirección. Las posiciones explicadas, y un buscador de qué armónica hace falta para tocar en cada tonalidad.</span>
-      <em>Doce armónicas × seis posiciones · bends calculados, no tabulados</em>
-    </a>
+  <!-- MIDI BANNER -->
+  <div class="midi-banner reveal">
+    <div class="midi-icon">&#127932;</div>
+    <div class="midi-text">
+      <h3>Biblioteca de Riffs MIDI incluida</h3>
+      <p>
+        Mas de <strong>42 archivos MIDI</strong> listos para cargar en la app de Teclado:
+        Blues Lento, Blues Shuffle, Bossa Nova, Chacarera, Montuno, Rock Octavas y Rock Organo
+        en 6 tonalidades (A, Bb, C, Eb, F, G) con mano izquierda y derecha en pistas separadas.
+        Incluye script Python para generar nuevas tonalidades y tempos.
+      </p>
+    </div>
+    <div class="midi-grid" aria-hidden="true">
+      <div class="midi-row"><div class="midi-cell on-a"></div><div class="midi-cell"></div><div class="midi-cell on-a"></div><div class="midi-cell"></div><div class="midi-cell on-t"></div></div>
+      <div class="midi-row"><div class="midi-cell"></div><div class="midi-cell on-t"></div><div class="midi-cell"></div><div class="midi-cell on-a"></div><div class="midi-cell"></div></div>
+      <div class="midi-row"><div class="midi-cell on-a"></div><div class="midi-cell"></div><div class="midi-cell on-t"></div><div class="midi-cell"></div><div class="midi-cell on-a"></div></div>
+      <div class="midi-row"><div class="midi-cell"></div><div class="midi-cell on-a"></div><div class="midi-cell"></div><div class="midi-cell on-t"></div><div class="midi-cell"></div></div>
+    </div>
   </div>
 
-  <div class="nota">
-    En <b>riffs-midi/</b> hay 42 archivos de patrones para practicar —blues, rock, montuno,
-    bossa y chacarera en seis tonalidades— con la mano izquierda y la derecha en pistas
-    separadas. Se abren desde el reproductor de la app de teclado. El archivo
-    <b>generar.py</b> produce otras tonalidades y tempos: <b>python3 riffs-midi/generar.py --listar</b>.
-  </div>
-
-  <div class="firma">
-    Desarrollado por <b>Claudio Cespon</b>, con Claude Opus 5 ·
-    <a href="https://www.linkedin.com/in/claudio-cespon/" target="_blank" rel="noopener">LinkedIn</a>
-  </div>
 </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div class="footer-left">Desarrollado por <strong>Claudio Cespon</strong> &mdash; con Claude &amp; Antigravity</div>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/claudio-cespon/" target="_blank" rel="noopener" id="link-linkedin">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          LinkedIn
+        </a>
+        <a href="https://github.com/cdcespon/html-instruments" target="_blank" rel="noopener" id="link-github">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+      <div class="footer-tech">HTML5 &middot; Vanilla JavaScript &middot; Web Audio API &middot; MIT License</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
 </body>
 </html>
