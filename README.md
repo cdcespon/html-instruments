@@ -14,6 +14,7 @@ Cada instrumento es un archivo HTML independiente: se abre directamente en cualq
 * 🌐 **[Preview alternativo (htmlpreview)](https://htmlpreview.github.io/?https://github.com/cdcespon/html-instruments/blob/main/index.html)**
 * 📥 **[Descargar Proyecto Completo (.ZIP)](https://github.com/cdcespon/html-instruments/archive/refs/heads/main.zip)**
 * 🎥 **[Ver Video de Demostración con Audio (`demo.mp4`)](demo.mp4)**
+* ☕ **[Invitame un Cafecito (cafecito.app/cdcespon)](https://cafecito.app/cdcespon)**
 
 ---
 
@@ -136,6 +137,7 @@ No requiere instalación, dependencias ni conexión a internet:
 * **Claudio Cespon**
   * 💼 [Perfil en LinkedIn](https://www.linkedin.com/in/claudio-cespon/)
   * 🐙 [GitHub: @cdcespon](https://github.com/cdcespon)
+  * ☕ [Invitame un Cafecito](https://cafecito.app/cdcespon)
 * **Victoria Cespón** (coautora de *HtmlVocalPitch*)
 
 ---
